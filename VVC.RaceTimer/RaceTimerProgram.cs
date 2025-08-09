@@ -25,6 +25,8 @@ namespace IngameScript {
         // Configuration values
         const string LCD_PANEL_NAME = "LCD Panel - Race Info";
 
+        const int MAX_CHECKPOINT_NAME_LENGTH = 4;
+
 
         // Do not change these values, they are used by the script.
         //////////////////////////////////////////////////////////////////////
@@ -32,24 +34,23 @@ namespace IngameScript {
         // Command values
         const string CMD_START = "start";
         const string CMD_STOP = "stop";
+        const string CMD_INIT = "init";
         const string CMD_RESET = "reset";
         const string CMD_CHECKPOINT = "checkpoint";
 
 
 
         IMyBroadcastListener _listener = null;
-        readonly Queue<string> _checkpointLog = new Queue<string>(100);
         readonly List<IMyTextPanel> _displaySurfaces = new List<IMyTextPanel>();
         readonly RunningSymbol _runningModule = new RunningSymbol();
         Action<string> Debug;
         Action ShowDebugLog;
 
         // Race tracking variables
-        long _startTime;
-        long _currentTime;
-        bool _isRaceActive;
+        RacerDetails _racerDetails = new RacerDetails();
 
         readonly char[] _splitChar = new char[] { '|' };
+        readonly string CheckpointTimeHeader = "".PadRight(MAX_CHECKPOINT_NAME_LENGTH) + "    Last CP      Total";
 
 
         public Program() {
@@ -79,6 +80,7 @@ namespace IngameScript {
                     case "": break;
                     case CMD_START: CommandStart(); break;
                     case CMD_STOP: CommandStop(); break;
+                    case CMD_INIT:
                     case CMD_RESET: CommandReset(); break;
                     case CMD_CHECKPOINT: CommandCheckpoint(); break;
                 }
@@ -91,27 +93,20 @@ namespace IngameScript {
 
         void CommandStart() {
             Debug("cmd: start");
-            _startTime = DateTime.Now.Ticks;
-            _currentTime = _startTime;
-            _isRaceActive = true;
-            _checkpointLog.Clear();
+            _racerDetails.Start();
             IGC.SendBroadcastMessage(IGCTags.RACE_TIME_SIGN, "start", TransmissionDistance.AntennaRelay);
         }
 
         void CommandStop() {
             Debug("cmd: stop");
-            _currentTime = DateTime.Now.Ticks;
-            _isRaceActive = false;
-            var action = "stop|" + CalculateElapsedTime(GetRaceTimeTicks()).ToString();
+            _racerDetails.Stop();
+            var action = "stop|" + _racerDetails.RaceDuration.ToString();
             IGC.SendBroadcastMessage(IGCTags.RACE_TIME_SIGN, action, TransmissionDistance.AntennaRelay);
         }
 
         void CommandReset() {
             Debug("cmd: reset");
-            _startTime = DateTime.Now.Ticks;
-            _currentTime = _startTime;
-            _isRaceActive = false;
-            _checkpointLog.Clear();
+            _racerDetails.Initialize();
             IGC.SendBroadcastMessage(IGCTags.RACE_TIME_SIGN, "reset", TransmissionDistance.AntennaRelay);
         }
 
@@ -125,8 +120,7 @@ namespace IngameScript {
 
             long ticks;
             if (long.TryParse(commsData[1], out ticks)) {
-                var logMessage = $"{commsData[0]}: {CalculateElapsedTime(ticks).ToRaceTimeString()}";
-                _checkpointLog.Enqueue(logMessage);
+                _racerDetails.AddCheckpoint(commsData[0], ticks);
             } else {
                 Debug($"Invalid ticks value: {commsData[1]}");
             }
@@ -141,21 +135,33 @@ namespace IngameScript {
 
 
         private void DisplayRaceInfo() {
-            var message = new StringBuilder();
-            var elapsedTime = CalculateElapsedTime(GetRaceTimeTicks()).ToRaceTimeString();
-            message.AppendLine($"Time: {elapsedTime}");
-            message.AppendLine();
-            message.AppendLines(_checkpointLog);
-            WriteToAllDisplays(message.ToString());
+            var message = BuildRaceInfoText();
+            WriteToAllDisplays(message);
         }
+        private string BuildRaceInfoText() {
+            var text = new StringBuilder();
+
+            var timeString = _racerDetails.RaceDuration.ToRaceTimeString();
+            text.AppendLine($"Time: {timeString}");
+
+            if (_racerDetails.CheckpointLog.Count > 0) {
+                text.AppendLine();
+                text.AppendLine(CheckpointTimeHeader);
+                foreach (var entry in _racerDetails.CheckpointLog) {
+                    var timeFromStart = entry.TimeFromStart.ToRaceTimeString();
+                    var timeFromLastCheckpoint = entry.TimeFromLastCheckpoint.ToRaceTimeString();
+                    text.AppendLine($"{entry.Name} | {timeFromLastCheckpoint} | {timeFromStart} |");
+                }
+            }
+
+            return text.ToString();
+        }
+
         private void WriteToAllDisplays(string text) {
             foreach (IMyTextSurface surface in _displaySurfaces) {
                 surface.WriteText(text);
             }
         }
-
-        private long GetRaceTimeTicks() => _isRaceActive ? DateTime.Now.Ticks : _currentTime;
-        private TimeSpan CalculateElapsedTime(long currentTicks) => new TimeSpan(currentTicks - _startTime);
 
     }
 }
