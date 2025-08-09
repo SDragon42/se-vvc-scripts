@@ -31,7 +31,7 @@ namespace IngameScript {
         IMyBroadcastListener _listener = null;
 
         static readonly string[] DIGIT_PREFIXES_13PANEL = { "Min10", "Min1", "Sec10", "Sec1" };
-        Dictionary<string, IMyLightingBlock> _13PanelLights = new Dictionary<string, IMyLightingBlock>();
+        readonly Dictionary<string, IMyLightingBlock[]> _13PanelLights = new Dictionary<string, IMyLightingBlock[]>();
 
 
         static readonly string[] SEGMENT_NAMES_13PANEL = new string[]
@@ -104,8 +104,6 @@ namespace IngameScript {
             }
 
             var parts = argument.Split('|', 2);
-            //var command = parts.Length >= 1 ? parts[0].ToLower() : string.Empty;
-            //var data = parts.Length >= 2 ? parts[1].ToLower() : string.Empty;
             return new string[] {
                 parts.Length >= 1 ? parts[0].ToLower() : string.Empty,
                 parts.Length >= 2 ? parts[1] : string.Empty
@@ -136,17 +134,16 @@ namespace IngameScript {
         }
 
         void InitializePanelSegments() {
-            var allBlocks = new List<IMyTerminalBlock>();
-            GridTerminalSystem.GetBlocks(allBlocks);
+            var allPanelBlocks = new List<IMyLightingBlock>();
+            GridTerminalSystem.GetBlocksOfType(allPanelBlocks);
 
             _13PanelLights.Clear();
 
             foreach (var digitPrefix in DIGIT_PREFIXES_13PANEL) {
                 foreach (var segmentName in SEGMENT_NAMES_13PANEL) {
                     var blockName = $"[{digitPrefix}] LightPanel-{segmentName}";
-                    var light = allBlocks.OfType<IMyLightingBlock>()
-                                         .FirstOrDefault(l => l.CustomName == blockName);
-                    if (light != null) _13PanelLights[blockName] = light;
+                    var lights = allPanelBlocks.Where(l => l.CustomName == blockName).ToArray();
+                    if (lights.Length > 0) _13PanelLights[blockName] = lights;
                 }
             }
         }
@@ -178,19 +175,21 @@ namespace IngameScript {
                 for (var j = 0; j < SEGMENT_NAMES_13PANEL.Length; j++) {
                     var segmentName = SEGMENT_NAMES_13PANEL[j];
                     var blockName = $"[{digitPrefix}] LightPanel-{segmentName}";
-                    IMyLightingBlock light;
+                    IMyLightingBlock[] lights;
 
-                    if (_13PanelLights.TryGetValue(blockName, out light)) {
+                    if (_13PanelLights.TryGetValue(blockName, out lights)) {
                         var segmentShouldBeOn = pattern[j];
 
-                        if (segmentShouldBeOn) {
-                            light.Color = Color.White;
-                            light.Intensity = 5f;
-                            light.Enabled = true;
-                        } else {
-                            light.Color = Color.Black;
-                            light.Intensity = 0f;
-                            light.Enabled = false;
+                        foreach (var light in lights) {
+                            if (segmentShouldBeOn) {
+                                light.Color = Color.White;
+                                light.Intensity = 5f;
+                                light.Enabled = true;
+                            } else {
+                                light.Color = Color.Black;
+                                light.Intensity = 0f;
+                                light.Enabled = false;
+                            }
                         }
                     }
                 }
