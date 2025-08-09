@@ -1,4 +1,5 @@
-﻿using System;
+﻿// <mdk sortorder="10" />
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -51,6 +52,7 @@ namespace IngameScript {
             new bool[] {true, true, true, true, true, true, true, true, false, true, true, true, true}  // 9
         };
 
+        readonly RunningSymbol _runningModule = new RunningSymbol();
         readonly DebugLogging _debug;
 
         public Program() {
@@ -65,6 +67,7 @@ namespace IngameScript {
         }
 
         public void Main(string argument, UpdateType updateSource) {
+            Echo($"VVC Race Time Sign {_runningModule.GetSymbol()}");
             try {
                 var argParts = ProcessArgument(ref argument);
 

@@ -1,4 +1,5 @@
-﻿using System;
+﻿// <mdk sortorder="10" />
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -36,11 +37,10 @@ namespace IngameScript {
 
 
 
-
         IMyBroadcastListener _listener = null;
         readonly Queue<string> _checkpointLog = new Queue<string>(100);
         readonly List<IMyTextPanel> _displaySurfaces = new List<IMyTextPanel>();
-        readonly RunningSymbol RunningModule = new RunningSymbol();
+        readonly RunningSymbol _runningModule = new RunningSymbol();
         readonly DebugLogging _debug;
 
         // Race tracking variables
@@ -65,7 +65,7 @@ namespace IngameScript {
         }
 
         public void Main(string argument, UpdateType updateSource) {
-            Echo($"VVC Race Timer {RunningModule.GetSymbol()}");
+            Echo($"VVC Race Timer {_runningModule.GetSymbol()}");
             try {
                 switch (argument.ToLower()) {
                     case "": break;
