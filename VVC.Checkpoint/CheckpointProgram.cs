@@ -24,10 +24,26 @@ namespace IngameScript {
 
         // Do not change these values, they are used by the script.
         //////////////////////////////////////////////////////////////////////
+        
+        Action<string> Debug;
+        Action ShowDebugLog;
+
+        public Program() {
+            Debug = Echo;
+            ShowDebugLog = () => { };
+
+            // Comment these lines to remove debugging displays
+            // var log = new DebugLogging(this);
+            // log.EchoMessages = true;
+            // Debug = (t) => log.AppendLine(t);
+            // ShowDebugLog = () => log.UpdateDisplay();
+        }
 
         public void Main(string argument, UpdateType updateSource) {
             var message = $"{argument}|{DateTime.Now.Ticks}";
             IGC.SendBroadcastMessage(IGCTags.CHECKPOINT, message, TransmissionDistance.AntennaRelay);
+            Debug($">>: {message}");
+            ShowDebugLog();
         }
     }
 }

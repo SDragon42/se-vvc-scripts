@@ -41,7 +41,8 @@ namespace IngameScript {
         readonly Queue<string> _checkpointLog = new Queue<string>(100);
         readonly List<IMyTextPanel> _displaySurfaces = new List<IMyTextPanel>();
         readonly RunningSymbol _runningModule = new RunningSymbol();
-        readonly DebugLogging _debug;
+        Action<string> Debug;
+        Action ShowDebugLog;
 
         // Race tracking variables
         long _startTime;
@@ -52,9 +53,16 @@ namespace IngameScript {
 
 
         public Program() {
-            Runtime.UpdateFrequency = UpdateFrequency.Update10;
+            Debug = Echo;
+            ShowDebugLog = () => { };
 
-            _debug = new DebugLogging(this);
+            // Comment these lines to remove debugging displays
+            // var log = new DebugLogging(this);
+            // log.EchoMessages = true;
+            // Debug = (t) => log.AppendLine(t);
+            // ShowDebugLog = () => log.UpdateDisplay();
+
+            Runtime.UpdateFrequency = UpdateFrequency.Update10;
 
             _listener = IGC.RegisterBroadcastListener(IGCTags.CHECKPOINT);
             _listener.SetMessageCallback(CMD_CHECKPOINT); // Runs this script with the argument as the message received.
@@ -76,12 +84,13 @@ namespace IngameScript {
                 }
             } finally {
                 DisplayRaceInfo();
-                _debug.UpdateDisplay();
+                ShowDebugLog();
             }
 
         }
 
         void CommandStart() {
+            Debug("cmd: start");
             _startTime = DateTime.Now.Ticks;
             _currentTime = _startTime;
             _isRaceActive = true;
@@ -90,6 +99,7 @@ namespace IngameScript {
         }
 
         void CommandStop() {
+            Debug("cmd: stop");
             _currentTime = DateTime.Now.Ticks;
             _isRaceActive = false;
             var action = "stop|" + CalculateElapsedTime(GetRaceTimeTicks()).ToString();
@@ -97,6 +107,7 @@ namespace IngameScript {
         }
 
         void CommandReset() {
+            Debug("cmd: reset");
             _startTime = DateTime.Now.Ticks;
             _currentTime = _startTime;
             _isRaceActive = false;
@@ -105,14 +116,19 @@ namespace IngameScript {
         }
 
         void CommandCheckpoint() {
+            Debug("cmd: checkpoint");
             var commsData = SplitValue(_listener.AcceptMessage().Data as string);
-            if (commsData.Length < 2)
+            if (commsData.Length < 2) {
+                Debug("Invalid checkpoint data received.");
                 return;
+            }
 
             long ticks;
             if (long.TryParse(commsData[1], out ticks)) {
                 var logMessage = $"{commsData[0]}: {CalculateElapsedTime(ticks).ToRaceTimeString()}";
                 _checkpointLog.Enqueue(logMessage);
+            } else {
+                Debug($"Invalid ticks value: {commsData[1]}");
             }
         }
 

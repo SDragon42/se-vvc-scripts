@@ -53,12 +53,20 @@ namespace IngameScript {
         };
 
         readonly RunningSymbol _runningModule = new RunningSymbol();
-        readonly DebugLogging _debug;
+        Action<string> Debug;
+        Action ShowDebugLog;
 
         public Program() {
-            Runtime.UpdateFrequency = UpdateFrequency.Update10;
+            Debug = Echo;
+            ShowDebugLog = () => { };
 
-            _debug = new DebugLogging(this);
+            // Comment these lines to remove debugging displays
+            // var log = new DebugLogging(this);
+            // log.EchoMessages = true;
+            // Debug = (t) => log.AppendLine(t);
+            // ShowDebugLog = () => log.UpdateDisplay();
+
+            Runtime.UpdateFrequency = UpdateFrequency.Update10;
 
             InitializePanelSegments();
 
@@ -84,7 +92,7 @@ namespace IngameScript {
                     Update13PanelLightDisplay(currentDuration);
                 }
             } finally {
-                _debug.UpdateDisplay();
+                ShowDebugLog();
             }
 
         }
@@ -92,7 +100,7 @@ namespace IngameScript {
         private string[] ProcessArgument(ref string argument) {
             if (argument == SIGN_COMM_CMD) {
                 argument = _listener.AcceptMessage().Data as string;
-                _debug.AppendLine($"cmd: {argument}");
+                Debug($"cmd: {argument}");
             }
 
             var parts = argument.Split('|', 2);
