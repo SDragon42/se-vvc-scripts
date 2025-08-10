@@ -92,24 +92,10 @@ namespace IngameScript {
 
         }
 
-        void CommandStart() {
-            if (_racerDetails.IsRaceActive) {
-                Debug("Race is currently running");
-                return;
-            }
-            _racerDetails.Start();
-            IGC.SendBroadcastMessage(IGCTags.RACE_TIME_SIGN, $"{RaceTimeSignCommands.START}|{_racerDetails.StartTimeTicks}");
+        void CommandReset() {
+            _racerDetails.Initialize();
+            IGC.SendBroadcastMessage(IGCTags.RACE_TIME_SIGN, RaceTimeSignCommands.RESET);
         }
-
-        void CommandStop() {
-            if (!_racerDetails.IsRaceActive) {
-                Debug("Race is not currently running");
-                return;
-            }
-            _racerDetails.Stop();
-            IGC.SendBroadcastMessage(IGCTags.RACE_TIME_SIGN, $"{RaceTimeSignCommands.STOP}|{_racerDetails.RaceDuration}");
-        }
-
         void CommandInit() {
             if (_racerDetails.IsRaceActive) {
                 Debug("Race is currently running");
@@ -119,12 +105,14 @@ namespace IngameScript {
             _racerDetails.Initialize(shipName);
             IGC.SendBroadcastMessage(IGCTags.RACE_TIME_SIGN, RaceTimeSignCommands.INIT);
         }
-
-        void CommandReset() {
-            _racerDetails.Initialize();
-            IGC.SendBroadcastMessage(IGCTags.RACE_TIME_SIGN, RaceTimeSignCommands.RESET);
+        void CommandStart() {
+            if (_racerDetails.IsRaceActive) {
+                Debug("Race is currently running");
+                return;
+            }
+            _racerDetails.Start();
+            IGC.SendBroadcastMessage(IGCTags.RACE_TIME_SIGN, $"{RaceTimeSignCommands.START}|{_racerDetails.StartTimeTicks}");
         }
-
         void CommandCheckpoint(string commsData) {
             if (!_racerDetails.IsRaceActive) {
                 Debug("Race is not currently running");
@@ -151,6 +139,14 @@ namespace IngameScript {
 
             _racerDetails.AddCheckpoint(name, ticks);
         }
+        void CommandStop() {
+            if (!_racerDetails.IsRaceActive) {
+                Debug("Race is not currently running");
+                return;
+            }
+            _racerDetails.Stop();
+            IGC.SendBroadcastMessage(IGCTags.RACE_TIME_SIGN, $"{RaceTimeSignCommands.STOP}|{_racerDetails.RaceDuration}");
+        }
 
         string GetShipName() {
             if (_raceStartConnectors.Count == 0) return null;
@@ -161,7 +157,6 @@ namespace IngameScript {
                 ? shipName
                 : BLANK_SHIP_NAME;
         }
-
 
         private void DisplayRaceInfo() {
             var message = BuildRaceInfoText();
