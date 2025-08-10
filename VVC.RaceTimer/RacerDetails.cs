@@ -22,6 +22,7 @@ using VRageMath;
 namespace IngameScript {
     partial class Program {
         class RacerDetails {
+            public string RacerShipName { get; private set; }
             public long StartTimeTicks { get; private set; }
             public long EndTimeTicks { get; private set; }
             public bool IsRaceActive { get; private set; }
@@ -34,7 +35,8 @@ namespace IngameScript {
             private long _lastCheckpointTime;
 
 
-            public void Initialize() {
+            public void Initialize(string racerShipName = null) {
+                RacerShipName = racerShipName;
                 StartTimeTicks = 0;
                 EndTimeTicks = 0;
                 _lastCheckpointTime = 0;
