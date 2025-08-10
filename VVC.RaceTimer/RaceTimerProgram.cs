@@ -24,8 +24,9 @@ namespace IngameScript {
 
         // Configuration values
         const string LCD_PANEL_NAME = "LCD Panel - Race Info";
+        const string CONNECTOR_TAG = "[VVC-RaceStart]";
 
-        const int MAX_CHECKPOINT_NAME_LENGTH = 4;
+        const string BLANK_SHIP_NAME = "[Name your damn ship!]";
 
 
         // Do not change these values, they are used by the script.
@@ -33,6 +34,7 @@ namespace IngameScript {
 
         IMyBroadcastListener _listener = null;
         readonly List<IMyTextPanel> _displaySurfaces = new List<IMyTextPanel>();
+        readonly List<IMyShipConnector> _raceStartConnectors = new List<IMyShipConnector>();
         readonly RunningSymbol _runningModule = new RunningSymbol();
         Action<string> Debug;
         Action ShowDebugLog;
@@ -41,7 +43,6 @@ namespace IngameScript {
         RacerDetails _racerDetails = new RacerDetails();
 
         readonly char[] _splitChar = new char[] { '|' };
-        readonly string CheckpointTimeHeader = "".PadRight(MAX_CHECKPOINT_NAME_LENGTH) + "    Last CP      Total";
 
 
         public Program() {
@@ -59,7 +60,8 @@ namespace IngameScript {
             _listener = IGC.RegisterBroadcastListener(IGCTags.CHECKPOINT);
             _listener.SetMessageCallback(RaceCenterCommands.CHECKPOINT); // Runs this script with the argument as the message received.
 
-            GridTerminalSystem.GetBlocksOfType(_displaySurfaces, surface => surface.CustomName == LCD_PANEL_NAME);
+            GridTerminalSystem.GetBlocksOfType(_displaySurfaces, b => b.IsSameConstructAs(Me) && b.CustomName == LCD_PANEL_NAME);
+            GridTerminalSystem.GetBlocksOfType(_raceStartConnectors, b => b.IsSameConstructAs(Me) && Collect.IsTagged(b, CONNECTOR_TAG));
 
             CommandReset(); // Reset the timer on startup.
         }
@@ -73,7 +75,7 @@ namespace IngameScript {
                     case "": break;
                     case RaceCenterCommands.START: CommandStart(); break;
                     case RaceCenterCommands.STOP: CommandStop(); break;
-                    case RaceCenterCommands.INIT:
+                    case RaceCenterCommands.INIT: CommandInit(); break;
                     case RaceCenterCommands.RESET: CommandReset(); break;
                     case RaceCenterCommands.CHECKPOINT: CommandCheckpoint(); break;
                 }
@@ -92,6 +94,12 @@ namespace IngameScript {
         void CommandStop() {
             _racerDetails.Stop();
             IGC.SendBroadcastMessage(IGCTags.RACE_TIME_SIGN, $"{RaceTimeSignCommands.STOP}|{_racerDetails.RaceDuration}");
+        }
+
+        void CommandInit() {
+            var shipName = GetShipName();
+            _racerDetails.Initialize(shipName);
+            IGC.SendBroadcastMessage(IGCTags.RACE_TIME_SIGN, RaceTimeSignCommands.INIT);
         }
 
         void CommandReset() {
@@ -119,6 +127,16 @@ namespace IngameScript {
             return argument.Split(_splitChar, 2);
         }
 
+        string GetShipName() {
+            if (_raceStartConnectors.Count == 0) return null;
+            var connector = _raceStartConnectors.FirstOrDefault(b => b.Status == MyShipConnectorStatus.Connected);
+            if (connector == null) return null;
+            var shipName = connector.OtherConnector?.CubeGrid.CustomName;
+            return !string.IsNullOrEmpty(shipName)
+                ? shipName
+                : BLANK_SHIP_NAME;
+        }
+
 
         private void DisplayRaceInfo() {
             var message = BuildRaceInfoText();
@@ -128,15 +146,19 @@ namespace IngameScript {
             var text = new StringBuilder();
 
             var timeString = _racerDetails.RaceDuration.ToRaceTimeString();
+            if (_racerDetails.RacerShipName != null)
+                text.AppendLine($"Ship: {_racerDetails.RacerShipName}");
             text.AppendLine($"Time: {timeString}");
 
             if (_racerDetails.CheckpointLog.Count > 0) {
                 text.AppendLine();
-                text.AppendLine(CheckpointTimeHeader);
+                var maxNameLength = _racerDetails.CheckpointLog.Max(entry => entry.Name.Length);
+                var header = "".PadRight(maxNameLength) + "     Split       Total";
+                text.AppendLine(header);
                 foreach (var entry in _racerDetails.CheckpointLog) {
                     var timeFromStart = entry.TimeFromStart.ToRaceTimeString();
                     var timeFromLastCheckpoint = entry.TimeFromLastCheckpoint.ToRaceTimeString();
-                    text.AppendLine($"{entry.Name} | {timeFromLastCheckpoint} | {timeFromStart} |");
+                    text.AppendLine($"{entry.Name.PadRight(maxNameLength)} | {timeFromLastCheckpoint} | {timeFromStart} |");
                 }
             }
 

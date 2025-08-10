@@ -6,6 +6,7 @@
     <SharedGUID>8a3cdcc5-4b55-4d87-a415-698a0e1ff06f</SharedGUID>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)Collect.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)DebugLogging.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IGCTags.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Logging.cs" />
