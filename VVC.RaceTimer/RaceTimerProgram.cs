@@ -58,7 +58,7 @@ namespace IngameScript {
             Runtime.UpdateFrequency = UpdateFrequency.Update10;
 
             _listener = IGC.RegisterBroadcastListener(IGCTags.CHECKPOINT);
-            _listener.SetMessageCallback(RaceCenterCommands.CHECKPOINT); // Runs this script with the argument as the message received.
+            _listener.SetMessageCallback(RaceCenterCommands.CHECKPOINT);
 
             GridTerminalSystem.GetBlocksOfType(_displaySurfaces, b => b.IsSameConstructAs(Me) && b.CustomName == LCD_PANEL_NAME);
             GridTerminalSystem.GetBlocksOfType(_raceStartConnectors, b => b.IsSameConstructAs(Me) && Collect.IsTagged(b, CONNECTOR_TAG));
@@ -69,15 +69,21 @@ namespace IngameScript {
         public void Main(string argument, UpdateType updateSource) {
             Echo($"VVC Race Timer {_runningModule.GetSymbol()}");
             try {
-                argument = argument.ToLower();
-                Debug($"cmd: {argument}");
-                switch (argument) {
-                    case "": break;
-                    case RaceCenterCommands.START: CommandStart(); break;
-                    case RaceCenterCommands.STOP: CommandStop(); break;
-                    case RaceCenterCommands.INIT: CommandInit(); break;
-                    case RaceCenterCommands.RESET: CommandReset(); break;
-                    case RaceCenterCommands.CHECKPOINT: CommandCheckpoint(); break;
+                if (argument == RaceCenterCommands.CHECKPOINT && (updateSource & UpdateType.IGC) == UpdateType.IGC) {
+                    var commData = _listener.AcceptMessage().Data as string;
+                    CommandCheckpoint(commData);
+                } else {
+                    argument = argument.ToLower();
+                    if (!string.IsNullOrEmpty(argument)) {
+                        Debug($"cmd: {argument}");
+                        switch (argument) {
+                            case RaceCenterCommands.START: CommandStart(); break;
+                            case RaceCenterCommands.STOP: CommandStop(); break;
+                            case RaceCenterCommands.INIT: CommandInit(); break;
+                            case RaceCenterCommands.RESET: CommandReset(); break;
+                            default: Debug($"Unknown command: {argument}"); break;
+                        }
+                    }
                 }
             } finally {
                 DisplayRaceInfo();
@@ -87,16 +93,28 @@ namespace IngameScript {
         }
 
         void CommandStart() {
+            if (_racerDetails.IsRaceActive) {
+                Debug("Race is currently running");
+                return;
+            }
             _racerDetails.Start();
             IGC.SendBroadcastMessage(IGCTags.RACE_TIME_SIGN, $"{RaceTimeSignCommands.START}|{_racerDetails.StartTimeTicks}");
         }
 
         void CommandStop() {
+            if (!_racerDetails.IsRaceActive) {
+                Debug("Race is not currently running");
+                return;
+            }
             _racerDetails.Stop();
             IGC.SendBroadcastMessage(IGCTags.RACE_TIME_SIGN, $"{RaceTimeSignCommands.STOP}|{_racerDetails.RaceDuration}");
         }
 
         void CommandInit() {
+            if (_racerDetails.IsRaceActive) {
+                Debug("Race is currently running");
+                return;
+            }
             var shipName = GetShipName();
             _racerDetails.Initialize(shipName);
             IGC.SendBroadcastMessage(IGCTags.RACE_TIME_SIGN, RaceTimeSignCommands.INIT);
@@ -107,24 +125,31 @@ namespace IngameScript {
             IGC.SendBroadcastMessage(IGCTags.RACE_TIME_SIGN, RaceTimeSignCommands.RESET);
         }
 
-        void CommandCheckpoint() {
-            var commsData = SplitValue(_listener.AcceptMessage().Data as string);
-            if (commsData.Length < 2) {
+        void CommandCheckpoint(string commsData) {
+            if (!_racerDetails.IsRaceActive) {
+                Debug("Race is not currently running");
+                return;
+            }
+
+            if (string.IsNullOrEmpty(commsData)) {
                 Debug("Invalid checkpoint data received.");
                 return;
             }
 
-            long ticks;
-            if (long.TryParse(commsData[1], out ticks)) {
-                _racerDetails.AddCheckpoint(commsData[0], ticks);
-            } else {
-                Debug($"Invalid ticks value: {commsData[1]}");
+            var parts = commsData.Split(_splitChar, 2);
+            if (parts.Length != 2) {
+                Debug($"Invalid checkpoint data received: {commsData}");
+                return;
             }
-        }
 
-        string[] SplitValue(string argument) {
-            if (string.IsNullOrEmpty(argument)) return new string[] { string.Empty };
-            return argument.Split(_splitChar, 2);
+            var name = parts[0];
+
+            long ticks;
+            if (!long.TryParse(parts[1], out ticks)) {
+                Debug($"Invalid ticks value: {parts[1]}");
+            }
+
+            _racerDetails.AddCheckpoint(name, ticks);
         }
 
         string GetShipName() {
