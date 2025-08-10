@@ -26,6 +26,8 @@ namespace IngameScript {
         const string CURRENT_RACE_LCD_NAME = "LCD Panel - Race Info";
         const string PREVIOUS_RACE_LCD_NAME = "LCD Panel - Previous Race Info";
         const string CONNECTOR_TAG = "[VVC-RaceStart]";
+        const string ACTION_RELAY_TRANSMITTER_NAME = "Action Relay - Transmitter";
+        const int CHANNEL_RESET_CHECKPOINTS = 100;
 
         const string BLANK_SHIP_NAME = "[Name your damn ship!]";
 
@@ -37,6 +39,7 @@ namespace IngameScript {
         readonly List<IMyTextPanel> _currentRaceDisplays = new List<IMyTextPanel>();
         readonly List<IMyTextPanel> _previousRaceDisplays = new List<IMyTextPanel>();
         readonly List<IMyShipConnector> _raceStartConnectors = new List<IMyShipConnector>();
+        readonly IMyTransponder _actionRelayTransmitter;
         readonly RunningSymbol _runningModule = new RunningSymbol();
         Action<string> Debug;
         Action ShowDebugLog;
@@ -66,6 +69,8 @@ namespace IngameScript {
             GridTerminalSystem.GetBlocksOfType(_currentRaceDisplays, b => b.IsSameConstructAs(Me) && b.CustomName == CURRENT_RACE_LCD_NAME);
             GridTerminalSystem.GetBlocksOfType(_previousRaceDisplays, b => b.IsSameConstructAs(Me) && b.CustomName == PREVIOUS_RACE_LCD_NAME);
             GridTerminalSystem.GetBlocksOfType(_raceStartConnectors, b => b.IsSameConstructAs(Me) && Collect.IsTagged(b, CONNECTOR_TAG));
+
+            _actionRelayTransmitter = GridTerminalSystem.GetBlockWithName(ACTION_RELAY_TRANSMITTER_NAME) as IMyTransponder;
 
             CommandReset(); // Reset the timer on startup.
         }
@@ -99,6 +104,8 @@ namespace IngameScript {
         void CommandReset() {
             _racerDetails.Initialize();
             IGC.SendBroadcastMessage(IGCTags.RACE_TIME_SIGN, RaceTimeSignCommands.RESET);
+            if (_actionRelayTransmitter != null)
+                _actionRelayTransmitter.SendSignal(CHANNEL_RESET_CHECKPOINTS);
         }
         void CommandInit() {
             if (_racerDetails.IsRaceActive) {
