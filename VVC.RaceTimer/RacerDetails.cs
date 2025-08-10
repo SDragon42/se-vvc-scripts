@@ -22,24 +22,24 @@ using VRageMath;
 namespace IngameScript {
     partial class Program {
         class RacerDetails {
-            public string RacerShipName { get; private set; }
-            public long StartTimeTicks { get; private set; }
-            public long EndTimeTicks { get; private set; }
-            public bool IsRaceActive { get; private set; }
-            public Queue<CheckpointLogEntry> CheckpointLog { get; } = new Queue<CheckpointLogEntry>(100);
+            public string RacerShipName { get; private set; } = null;
+            public long StartTimeTicks { get; private set; } = 0;
+            public long EndTimeTicks { get; private set; } = 0;
+            public bool IsRaceActive { get; private set; } = false;
+
+            private long _lastCheckpointTicks = 0;
+            public List<CheckpointLogEntry> CheckpointLog { get; private set; } = new List<CheckpointLogEntry>(100); 
 
 
             private long CurrentTimeTicks => IsRaceActive ? DateTime.Now.Ticks : EndTimeTicks;
             public TimeSpan RaceDuration => TimeSpan.FromTicks(CurrentTimeTicks - StartTimeTicks);
-
-            private long _lastCheckpointTime;
 
 
             public void Initialize(string racerShipName = null) {
                 RacerShipName = racerShipName;
                 StartTimeTicks = 0;
                 EndTimeTicks = 0;
-                _lastCheckpointTime = 0;
+                _lastCheckpointTicks = 0;
                 IsRaceActive = false;
                 CheckpointLog.Clear();
             }
@@ -49,7 +49,7 @@ namespace IngameScript {
                     return;
                 StartTimeTicks = DateTime.Now.Ticks;
                 EndTimeTicks = StartTimeTicks;
-                _lastCheckpointTime = StartTimeTicks;
+                _lastCheckpointTicks = StartTimeTicks;
                 IsRaceActive = true;
                 CheckpointLog.Clear();
             }
@@ -62,11 +62,13 @@ namespace IngameScript {
             }
 
             public void AddCheckpoint(string checkpointName, long checkpointTimeTicks) {
+                if (!IsRaceActive)
+                    return;
                 var ticksFromStart = checkpointTimeTicks - StartTimeTicks;
-                var ticksFromLastCheckpoint = checkpointTimeTicks - _lastCheckpointTime;
+                var ticksFromLastCheckpoint = checkpointTimeTicks - _lastCheckpointTicks;
                 var entry = new CheckpointLogEntry(checkpointName, ticksFromStart, ticksFromLastCheckpoint);
-                CheckpointLog.Enqueue(entry);
-                _lastCheckpointTime = checkpointTimeTicks;
+                CheckpointLog.Add(entry);
+                _lastCheckpointTicks = checkpointTimeTicks;
             }
 
         }
