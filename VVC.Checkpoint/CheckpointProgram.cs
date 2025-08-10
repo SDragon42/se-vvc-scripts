@@ -41,7 +41,7 @@ namespace IngameScript {
 
         public void Main(string argument, UpdateType updateSource) {
             var message = $"{argument}|{DateTime.Now.Ticks}";
-            IGC.SendBroadcastMessage(IGCTags.CHECKPOINT, message, TransmissionDistance.AntennaRelay);
+            IGC.SendBroadcastMessage(IGCTags.CHECKPOINT, message);
             Debug($">>: {message}");
             ShowDebugLog();
         }

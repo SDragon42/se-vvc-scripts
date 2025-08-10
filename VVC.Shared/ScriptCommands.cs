@@ -36,7 +36,7 @@ namespace IngameScript {
             public const string STOP = "stop";
             public const string INIT = "init";
             public const string RESET = "reset";
-            public const string SET_TIME = "settime";
+            public const string SET_TIME = "set-time";
 
         }
 

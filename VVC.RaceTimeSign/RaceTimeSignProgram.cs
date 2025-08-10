@@ -21,10 +21,9 @@ using VRageMath;
 
 namespace IngameScript {
     public partial class Program : MyGridProgram {
-        const string SIGN_COMM_CMD = "timer-sign";
 
-        List<MyDetectedEntityInfo> _detectedEntities = new List<MyDetectedEntityInfo>();
-
+        // Do not change these values, they are used by the script.
+        //////////////////////////////////////////////////////////////////////
         DateTime _raceStartTime;
         bool _raceIsRunning = false;
 
@@ -54,7 +53,7 @@ namespace IngameScript {
             InitializePanelSegments();
 
             _listener = IGC.RegisterBroadcastListener(IGCTags.RACE_TIME_SIGN);
-            _listener.SetMessageCallback(SIGN_COMM_CMD); // Runs this script with the argument as the message received.
+            _listener.SetMessageCallback(RaceTimeSignCommands.SET_TIME);
         }
 
         public void Main(string argument, UpdateType updateSource) {
@@ -63,7 +62,7 @@ namespace IngameScript {
                 var argParts = ProcessArgument(ref argument);
 
                 switch (argParts[0]) {
-                    case RaceTimeSignCommands.START: CommandStart(); break;
+                    case RaceTimeSignCommands.START: CommandStart(argParts[1]); break;
                     case RaceTimeSignCommands.STOP: CommandStop(argParts[1]); break;
                     case RaceTimeSignCommands.INIT:
                     case RaceTimeSignCommands.RESET: CommandReset(); break;
@@ -72,7 +71,7 @@ namespace IngameScript {
 
                 if (_raceIsRunning) {
                     var currentDuration = DateTime.Now - _raceStartTime;
-                    Update13PanelLightDisplay(currentDuration); 
+                    Update13PanelLightDisplay(currentDuration);
                 }
             } finally {
                 ShowDebugLog();
@@ -81,11 +80,10 @@ namespace IngameScript {
         }
 
         private string[] ProcessArgument(ref string argument) {
-            if (argument == SIGN_COMM_CMD) {
+            if (argument == RaceTimeSignCommands.SET_TIME)
                 argument = _listener.AcceptMessage().Data as string;
-                Debug($"cmd: {argument}");
-            }
 
+            Debug($"cmd: {argument}");
             var parts = argument.Split(_separator, 2);
             return new string[] {
                 parts.Length >= 1 ? parts[0].ToLower() : string.Empty,
@@ -93,8 +91,11 @@ namespace IngameScript {
             };
         }
 
-        void CommandStart() {
-            _raceStartTime = DateTime.Now;
+        void CommandStart(string startTimeTicks) {
+            long startTicks;
+            _raceStartTime = long.TryParse(startTimeTicks, out startTicks)
+                ? new DateTime(startTicks)
+                : DateTime.Now;
             _raceIsRunning = true;
             Debug("Race started!");
         }

@@ -31,15 +31,6 @@ namespace IngameScript {
         // Do not change these values, they are used by the script.
         //////////////////////////////////////////////////////////////////////
 
-        // Command values
-        // const string CMD_START = "start";
-        // const string CMD_STOP = "stop";
-        // const string CMD_INIT = "init";
-        // const string CMD_RESET = "reset";
-        // const string CMD_CHECKPOINT = "checkpoint";
-
-
-
         IMyBroadcastListener _listener = null;
         readonly List<IMyTextPanel> _displaySurfaces = new List<IMyTextPanel>();
         readonly RunningSymbol _runningModule = new RunningSymbol();
@@ -95,13 +86,12 @@ namespace IngameScript {
 
         void CommandStart() {
             _racerDetails.Start();
-            IGC.SendBroadcastMessage(IGCTags.RACE_TIME_SIGN, RaceTimeSignCommands.START);
+            IGC.SendBroadcastMessage(IGCTags.RACE_TIME_SIGN, $"{RaceTimeSignCommands.START}|{_racerDetails.StartTimeTicks}");
         }
 
         void CommandStop() {
             _racerDetails.Stop();
-            var action = $"{RaceTimeSignCommands.STOP}|{_racerDetails.RaceDuration}";
-            IGC.SendBroadcastMessage(IGCTags.RACE_TIME_SIGN, action);
+            IGC.SendBroadcastMessage(IGCTags.RACE_TIME_SIGN, $"{RaceTimeSignCommands.STOP}|{_racerDetails.RaceDuration}");
         }
 
         void CommandReset() {
