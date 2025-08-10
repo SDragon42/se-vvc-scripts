@@ -21,9 +21,24 @@ using VRageMath;
 
 namespace IngameScript {
     partial class Program {
-        static class IGCTags {
-            public const string CHECKPOINT = "VVC.Checkpoint";
-            public const string RACE_TIME_SIGN = "VVC.RaceTimeSign";
+
+        static class RaceCenterCommands {
+            public const string START = "start";
+            public const string STOP = "stop";
+            public const string INIT = "init";
+            public const string RESET = "reset";
+            public const string CHECKPOINT = "checkpoint";
+
         }
+
+        static class RaceTimeSignCommands {
+            public const string START = "start";
+            public const string STOP = "stop";
+            public const string INIT = "init";
+            public const string RESET = "reset";
+            public const string SET_TIME = "settime";
+
+        }
+
     }
 }

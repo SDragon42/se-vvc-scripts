@@ -23,59 +23,55 @@ namespace IngameScript {
     partial class Program {
         class Logging {
 
-            readonly List<string> Lines = new List<string>();
+            readonly List<string> _lines = new List<string>();
 
             public Logging(int maxLines2Keep = 10) {
                 Enabled = true;
                 MaxTextLinesToKeep = maxLines2Keep;
             }
 
-            string LineBuffer = string.Empty;
+            string _lineBuffer = string.Empty;
 
             public bool Enabled { get; set; }
 
-            int maxLines;
+            int _maxLines;
             public int MaxTextLinesToKeep {
-                get { return maxLines; }
-                set { maxLines = value > 0 ? value : 0; }
+                get { return _maxLines; }
+                set { _maxLines = Math.Max(0, value); }
             }
 
 
             public virtual void Clear() {
                 if (!Enabled) return;
-                Lines.Clear();
-                LineBuffer = string.Empty;
+                _lines.Clear();
+                _lineBuffer = string.Empty;
             }
 
             public void Append(string text, params object[] args) {
                 if (!Enabled) return;
-                LineBuffer += string.Format(text, args);
+                _lineBuffer += string.Format(text, args);
             }
 
-            public void AppendLine() {
-                AppendLine(string.Empty);
-            }
+            public void AppendLine() => AppendLine(string.Empty);
             public void AppendLine(string text, params object[] args) {
                 if (!Enabled) return;
                 Append(text, args);
-                Lines.Add(LineBuffer);
-                LineBuffer = string.Empty;
+                _lines.Add(_lineBuffer);
+                _lineBuffer = string.Empty;
                 TrimLines();
             }
 
             void TrimLines() {
-                if (maxLines <= 0) return;
-                while (Lines.Count > maxLines)
-                    Lines.RemoveAt(0);
+                if (_maxLines <= 0) return;
+                while (_lines.Count > _maxLines)
+                    _lines.RemoveAt(0);
             }
 
-            public string GetLogText() => ToString();
-
-            public override string ToString() {
+            public string GetLogText() {
                 var sb = new StringBuilder();
-                foreach (var line in Lines) sb.AppendLine(line);
-                if (!string.IsNullOrWhiteSpace(LineBuffer))
-                    sb.AppendLine(LineBuffer);
+                foreach (var line in _lines) sb.AppendLine(line);
+                if (!string.IsNullOrWhiteSpace(_lineBuffer))
+                    sb.AppendLine(_lineBuffer);
                 return sb.ToString();
             }
         }

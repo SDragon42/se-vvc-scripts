@@ -10,6 +10,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)IGCTags.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Logging.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RunningSymbol.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ScriptCommands.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)VccExtensions.cs" />
   </ItemGroup>
 </Project>

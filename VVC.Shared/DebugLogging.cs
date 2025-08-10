@@ -24,15 +24,15 @@ namespace IngameScript {
         class DebugLogging : Logging {
             public const string DefaultDebugPanelName = "DEBUG";
 
-            readonly MyGridProgram gridProg;
-            readonly string displayName;
-            int displayIndex;
+            readonly MyGridProgram _gridProg;
+            readonly string _displayName;
+            int _displayIndex;
 
 
             public DebugLogging(MyGridProgram thisObj, string displayName = null, int displayIndex = 0) {
-                gridProg = thisObj;
-                this.displayName = string.IsNullOrWhiteSpace(displayName) ? DefaultDebugPanelName : displayName;
-                this.displayIndex = displayIndex >= 0 ? displayIndex : 0;
+                _gridProg = thisObj;
+                _displayName = string.IsNullOrWhiteSpace(displayName) ? DefaultDebugPanelName : displayName;
+                _displayIndex = displayIndex >= 0 ? displayIndex : 0;
                 MaxTextLinesToKeep = -1;
             }
 
@@ -47,19 +47,18 @@ namespace IngameScript {
             public void UpdateDisplay() {
                 if (!Enabled) return;
                 var text = GetLogText();
-                if (EchoMessages && text.Length > 0) gridProg.Echo(text);
-                WriteToDisplays(text);
+                if (EchoMessages && text.Length > 0) _gridProg.Echo(text);
+                WriteToDisplay(text);
             }
-            void WriteToDisplays(string text) {
+            void WriteToDisplay(string text) {
                 if (!Enabled) return;
-                var b = gridProg.GridTerminalSystem.GetBlockWithName(displayName);
+                var b = _gridProg.GridTerminalSystem.GetBlockWithName(_displayName);
                 if (b == null) return;
-                if (!b.IsSameConstructAs(gridProg.Me)) return;
+                if (!b.IsSameConstructAs(_gridProg.Me)) return;
                 var d = b as IMyTextSurfaceProvider;
                 if (d == null) return;
-                if (displayIndex > d.SurfaceCount - 1)
-                    displayIndex = d.SurfaceCount - 1;
-                var surface = d.GetSurface(displayIndex);
+                if (_displayIndex < 0 || _displayIndex >= d.SurfaceCount) return;
+                var surface = d.GetSurface(_displayIndex);
                 surface.ContentType = ContentType.TEXT_AND_IMAGE;
                 surface.WriteText(text);
             }

@@ -32,11 +32,11 @@ namespace IngameScript {
         //////////////////////////////////////////////////////////////////////
 
         // Command values
-        const string CMD_START = "start";
-        const string CMD_STOP = "stop";
-        const string CMD_INIT = "init";
-        const string CMD_RESET = "reset";
-        const string CMD_CHECKPOINT = "checkpoint";
+        // const string CMD_START = "start";
+        // const string CMD_STOP = "stop";
+        // const string CMD_INIT = "init";
+        // const string CMD_RESET = "reset";
+        // const string CMD_CHECKPOINT = "checkpoint";
 
 
 
@@ -66,7 +66,7 @@ namespace IngameScript {
             Runtime.UpdateFrequency = UpdateFrequency.Update10;
 
             _listener = IGC.RegisterBroadcastListener(IGCTags.CHECKPOINT);
-            _listener.SetMessageCallback(CMD_CHECKPOINT); // Runs this script with the argument as the message received.
+            _listener.SetMessageCallback(RaceCenterCommands.CHECKPOINT); // Runs this script with the argument as the message received.
 
             GridTerminalSystem.GetBlocksOfType(_displaySurfaces, surface => surface.CustomName == LCD_PANEL_NAME);
 
@@ -76,13 +76,15 @@ namespace IngameScript {
         public void Main(string argument, UpdateType updateSource) {
             Echo($"VVC Race Timer {_runningModule.GetSymbol()}");
             try {
-                switch (argument.ToLower()) {
+                argument = argument.ToLower();
+                Debug($"cmd: {argument}");
+                switch (argument) {
                     case "": break;
-                    case CMD_START: CommandStart(); break;
-                    case CMD_STOP: CommandStop(); break;
-                    case CMD_INIT:
-                    case CMD_RESET: CommandReset(); break;
-                    case CMD_CHECKPOINT: CommandCheckpoint(); break;
+                    case RaceCenterCommands.START: CommandStart(); break;
+                    case RaceCenterCommands.STOP: CommandStop(); break;
+                    case RaceCenterCommands.INIT:
+                    case RaceCenterCommands.RESET: CommandReset(); break;
+                    case RaceCenterCommands.CHECKPOINT: CommandCheckpoint(); break;
                 }
             } finally {
                 DisplayRaceInfo();
@@ -92,26 +94,22 @@ namespace IngameScript {
         }
 
         void CommandStart() {
-            Debug("cmd: start");
             _racerDetails.Start();
-            IGC.SendBroadcastMessage(IGCTags.RACE_TIME_SIGN, "start", TransmissionDistance.AntennaRelay);
+            IGC.SendBroadcastMessage(IGCTags.RACE_TIME_SIGN, RaceTimeSignCommands.START);
         }
 
         void CommandStop() {
-            Debug("cmd: stop");
             _racerDetails.Stop();
-            var action = "stop|" + _racerDetails.RaceDuration.ToString();
-            IGC.SendBroadcastMessage(IGCTags.RACE_TIME_SIGN, action, TransmissionDistance.AntennaRelay);
+            var action = $"{RaceTimeSignCommands.STOP}|{_racerDetails.RaceDuration}";
+            IGC.SendBroadcastMessage(IGCTags.RACE_TIME_SIGN, action);
         }
 
         void CommandReset() {
-            Debug("cmd: reset");
             _racerDetails.Initialize();
-            IGC.SendBroadcastMessage(IGCTags.RACE_TIME_SIGN, "reset", TransmissionDistance.AntennaRelay);
+            IGC.SendBroadcastMessage(IGCTags.RACE_TIME_SIGN, RaceTimeSignCommands.RESET);
         }
 
         void CommandCheckpoint() {
-            Debug("cmd: checkpoint");
             var commsData = SplitValue(_listener.AcceptMessage().Data as string);
             if (commsData.Length < 2) {
                 Debug("Invalid checkpoint data received.");
@@ -130,8 +128,6 @@ namespace IngameScript {
             if (string.IsNullOrEmpty(argument)) return new string[] { string.Empty };
             return argument.Split(_splitChar, 2);
         }
-
-
 
 
         private void DisplayRaceInfo() {
