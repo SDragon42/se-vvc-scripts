@@ -23,7 +23,8 @@ namespace IngameScript {
     public partial class Program : MyGridProgram {
 
         // Configuration values
-        const string LCD_PANEL_NAME = "LCD Panel - Race Info";
+        const string CURRENT_RACE_LCD_NAME = "LCD Panel - Race Info";
+        const string PREVIOUS_RACE_LCD_NAME = "LCD Panel - Previous Race Info";
         const string CONNECTOR_TAG = "[VVC-RaceStart]";
 
         const string BLANK_SHIP_NAME = "[Name your damn ship!]";
@@ -33,7 +34,8 @@ namespace IngameScript {
         //////////////////////////////////////////////////////////////////////
 
         IMyBroadcastListener _listener = null;
-        readonly List<IMyTextPanel> _displaySurfaces = new List<IMyTextPanel>();
+        readonly List<IMyTextPanel> _currentRaceDisplays = new List<IMyTextPanel>();
+        readonly List<IMyTextPanel> _previousRaceDisplays = new List<IMyTextPanel>();
         readonly List<IMyShipConnector> _raceStartConnectors = new List<IMyShipConnector>();
         readonly RunningSymbol _runningModule = new RunningSymbol();
         Action<string> Debug;
@@ -41,6 +43,7 @@ namespace IngameScript {
 
         // Race tracking variables
         RacerDetails _racerDetails = new RacerDetails();
+        bool _updatePreviousRaceInfo = false;
 
         readonly char[] _splitChar = new char[] { '|' };
 
@@ -60,7 +63,8 @@ namespace IngameScript {
             _listener = IGC.RegisterBroadcastListener(IGCTags.CHECKPOINT);
             _listener.SetMessageCallback(RaceCenterCommands.CHECKPOINT);
 
-            GridTerminalSystem.GetBlocksOfType(_displaySurfaces, b => b.IsSameConstructAs(Me) && b.CustomName == LCD_PANEL_NAME);
+            GridTerminalSystem.GetBlocksOfType(_currentRaceDisplays, b => b.IsSameConstructAs(Me) && b.CustomName == CURRENT_RACE_LCD_NAME);
+            GridTerminalSystem.GetBlocksOfType(_previousRaceDisplays, b => b.IsSameConstructAs(Me) && b.CustomName == PREVIOUS_RACE_LCD_NAME);
             GridTerminalSystem.GetBlocksOfType(_raceStartConnectors, b => b.IsSameConstructAs(Me) && Collect.IsTagged(b, CONNECTOR_TAG));
 
             CommandReset(); // Reset the timer on startup.
@@ -146,6 +150,7 @@ namespace IngameScript {
             }
             _racerDetails.Stop();
             IGC.SendBroadcastMessage(IGCTags.RACE_TIME_SIGN, $"{RaceTimeSignCommands.STOP}|{_racerDetails.RaceDuration}");
+            _updatePreviousRaceInfo = true;
         }
 
         string GetShipName() {
@@ -160,7 +165,11 @@ namespace IngameScript {
 
         private void DisplayRaceInfo() {
             var message = BuildRaceInfoText();
-            WriteToAllDisplays(message);
+            WriteToAllDisplays(_currentRaceDisplays, message);
+            if (_updatePreviousRaceInfo) {
+                _updatePreviousRaceInfo = false;
+                WriteToAllDisplays(_previousRaceDisplays, message);
+            }
         }
         private string BuildRaceInfoText() {
             var text = new StringBuilder();
@@ -185,8 +194,8 @@ namespace IngameScript {
             return text.ToString();
         }
 
-        private void WriteToAllDisplays(string text) {
-            foreach (IMyTextSurface surface in _displaySurfaces) {
+        private void WriteToAllDisplays(IEnumerable<IMyTextPanel> displays, string text) {
+            foreach (IMyTextSurface surface in displays) {
                 surface.WriteText(text);
             }
         }
