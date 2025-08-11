@@ -108,8 +108,7 @@ namespace IngameScript {
         void CommandReset() {
             _racerDetails.Initialize();
             IGC.SendBroadcastMessage(IGCTags.RACE_TIME_SIGN, RaceTimeSignCommands.RESET);
-            if (_actionRelayTransmitter != null)
-                _actionRelayTransmitter.SendSignal(CHANNEL_RESET_CHECKPOINTS);
+            _actionRelayTransmitter?.SendSignal(CHANNEL_RESET_CHECKPOINTS);
         }
         void CommandInit() {
             if (_racerDetails.IsRaceActive) {
@@ -119,6 +118,7 @@ namespace IngameScript {
             var shipName = GetShipName();
             _racerDetails.Initialize(shipName);
             IGC.SendBroadcastMessage(IGCTags.RACE_TIME_SIGN, RaceTimeSignCommands.INIT);
+            _actionRelayTransmitter?.SendSignal(CHANNEL_RESET_CHECKPOINTS);
         }
         void CommandStart() {
             if (_racerDetails.IsRaceActive) {
