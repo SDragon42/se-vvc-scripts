@@ -25,6 +25,7 @@ namespace IngameScript {
         // Configuration values
         const string CURRENT_RACE_LCD_NAME = "LCD Panel - Race Info";
         const string PREVIOUS_RACE_LCD_NAME = "LCD Panel - Previous Race Info";
+        const string PREVIOUS_RACE_2_LCD_NAME = "LCD Panel - Previous Race Info 2";
         const string CONNECTOR_TAG = "[VVC-RaceStart]";
         const string ACTION_RELAY_TRANSMITTER_NAME = "Action Relay - Transmitter";
         const int CHANNEL_RESET_CHECKPOINTS = 100;
@@ -38,6 +39,7 @@ namespace IngameScript {
         IMyBroadcastListener _listener = null;
         readonly List<IMyTextPanel> _currentRaceDisplays = new List<IMyTextPanel>();
         readonly List<IMyTextPanel> _previousRaceDisplays = new List<IMyTextPanel>();
+        readonly List<IMyTextPanel> _previousRace2Displays = new List<IMyTextPanel>();
         readonly List<IMyShipConnector> _raceStartConnectors = new List<IMyShipConnector>();
         readonly IMyTransponder _actionRelayTransmitter;
         readonly RunningSymbol _runningModule = new RunningSymbol();
@@ -47,6 +49,7 @@ namespace IngameScript {
         // Race tracking variables
         RacerDetails _racerDetails = new RacerDetails();
         bool _updatePreviousRaceInfo = false;
+        string _previousRaceInfo = string.Empty;
 
         readonly char[] _splitChar = new char[] { '|' };
 
@@ -68,6 +71,7 @@ namespace IngameScript {
 
             GridTerminalSystem.GetBlocksOfType(_currentRaceDisplays, b => b.IsSameConstructAs(Me) && b.CustomName == CURRENT_RACE_LCD_NAME);
             GridTerminalSystem.GetBlocksOfType(_previousRaceDisplays, b => b.IsSameConstructAs(Me) && b.CustomName == PREVIOUS_RACE_LCD_NAME);
+            GridTerminalSystem.GetBlocksOfType(_previousRace2Displays, b => b.IsSameConstructAs(Me) && b.CustomName == PREVIOUS_RACE_2_LCD_NAME);
             GridTerminalSystem.GetBlocksOfType(_raceStartConnectors, b => b.IsSameConstructAs(Me) && Collect.IsTagged(b, CONNECTOR_TAG));
 
             _actionRelayTransmitter = GridTerminalSystem.GetBlockWithName(ACTION_RELAY_TRANSMITTER_NAME) as IMyTransponder;
@@ -175,7 +179,10 @@ namespace IngameScript {
             WriteToAllDisplays(_currentRaceDisplays, message);
             if (_updatePreviousRaceInfo) {
                 _updatePreviousRaceInfo = false;
-                WriteToAllDisplays(_previousRaceDisplays, message);
+                WriteToAllDisplays(_previousRaceDisplays, "Previous Race\n\n" + message);
+                if (!string.IsNullOrEmpty(_previousRaceInfo))
+                    WriteToAllDisplays(_previousRace2Displays, "Previous Race 2\n\n" + _previousRaceInfo);
+                _previousRaceInfo = message;
             }
         }
         private string BuildRaceInfoText() {
