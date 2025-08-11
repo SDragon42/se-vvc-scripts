@@ -7,11 +7,12 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)Collect.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)DebugLogging.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\MyIniExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\VccExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IGCTags.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Logging.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)RunningSymbol.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Modules\DebugLogging.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Modules\Logging.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Modules\RunningSymbol.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ScriptCommands.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)VccExtensions.cs" />
   </ItemGroup>
 </Project>
