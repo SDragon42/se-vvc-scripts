@@ -22,8 +22,9 @@ using VRageMath;
 namespace IngameScript {
     public partial class Program : MyGridProgram {
 
-        // Configuration values
-        const string CURRENT_RACE_LCD_NAME = "LCD Panel - Race Info";
+        const double BLOCK_RELOAD_TIME = 10;
+        double _timeLastBlockLoad = BLOCK_RELOAD_TIME * 2; // Force reload on first run
+
         const string PREVIOUS_RACE_LCD_NAME = "LCD Panel - Previous Race Info";
         const string PREVIOUS_RACE_2_LCD_NAME = "LCD Panel - Previous Race Info 2";
         const string CONNECTOR_TAG = "[VVC-RaceStart]";
@@ -33,16 +34,15 @@ namespace IngameScript {
         const string BLANK_SHIP_NAME = "[Name your damn ship!]";
 
 
-        // Do not change these values, they are used by the script.
-        //////////////////////////////////////////////////////////////////////
-
         IMyBroadcastListener _listener = null;
         readonly List<IMyTextPanel> _currentRaceDisplays = new List<IMyTextPanel>();
         readonly List<IMyTextPanel> _previousRaceDisplays = new List<IMyTextPanel>();
         readonly List<IMyTextPanel> _previousRace2Displays = new List<IMyTextPanel>();
         readonly List<IMyShipConnector> _raceStartConnectors = new List<IMyShipConnector>();
-        readonly IMyTransponder _actionRelayTransmitter;
+        IMyTransponder _actionRelayTransmitter;
         readonly RunningSymbol _runningModule = new RunningSymbol();
+        readonly Logging _log = new Logging();
+
         Action<string> Debug;
         Action ShowDebugLog;
 
@@ -50,6 +50,7 @@ namespace IngameScript {
         RacerDetails _racerDetails = new RacerDetails();
         bool _updatePreviousRaceInfo = false;
         string _previousRaceInfo = string.Empty;
+        bool _doNotRun = false;
 
         readonly char[] _splitChar = new char[] { '|' };
 
@@ -61,7 +62,7 @@ namespace IngameScript {
             // Comment these lines to remove debugging displays
             // var log = new DebugLogging(this);
             // log.EchoMessages = true;
-            // Debug = (t) => log.AppendLine(t);
+            // Debug = (t) => log.AppendLine($"{DateTime.Now:mm:ss.fff}> {t}");
             // ShowDebugLog = () => log.UpdateDisplay();
 
             Runtime.UpdateFrequency = UpdateFrequency.Update10;
@@ -69,40 +70,79 @@ namespace IngameScript {
             _listener = IGC.RegisterBroadcastListener(IGCTags.CHECKPOINT);
             _listener.SetMessageCallback(RaceCenterCommands.CHECKPOINT);
 
-            GridTerminalSystem.GetBlocksOfType(_currentRaceDisplays, b => b.IsSameConstructAs(Me) && b.CustomName == CURRENT_RACE_LCD_NAME);
-            GridTerminalSystem.GetBlocksOfType(_previousRaceDisplays, b => b.IsSameConstructAs(Me) && b.CustomName == PREVIOUS_RACE_LCD_NAME);
-            GridTerminalSystem.GetBlocksOfType(_previousRace2Displays, b => b.IsSameConstructAs(Me) && b.CustomName == PREVIOUS_RACE_2_LCD_NAME);
-            GridTerminalSystem.GetBlocksOfType(_raceStartConnectors, b => b.IsSameConstructAs(Me) && Collect.IsTagged(b, CONNECTOR_TAG));
-
-            _actionRelayTransmitter = GridTerminalSystem.GetBlockWithName(ACTION_RELAY_TRANSMITTER_NAME) as IMyTransponder;
-
-            CommandReset(); // Reset the timer on startup.
+            CommandReset();
         }
 
         public void Main(string argument, UpdateType updateSource) {
+            _timeLastBlockLoad += Runtime.TimeSinceLastRun.TotalSeconds;
             Echo($"VVC Race Timer {_runningModule.GetSymbol()}");
+
             try {
-                if (argument == RaceCenterCommands.CHECKPOINT && (updateSource & UpdateType.IGC) == UpdateType.IGC) {
-                    var commData = _listener.AcceptMessage().Data as string;
-                    CommandCheckpoint(commData);
-                } else {
-                    argument = argument.ToLower();
-                    if (!string.IsNullOrEmpty(argument)) {
-                        Debug($"cmd: {argument}");
-                        switch (argument) {
-                            case RaceCenterCommands.START: CommandStart(); break;
-                            case RaceCenterCommands.STOP: CommandStop(); break;
-                            case RaceCenterCommands.INIT: CommandInit(); break;
-                            case RaceCenterCommands.RESET: CommandReset(); break;
-                            default: Debug($"Unknown command: {argument}"); break;
-                        }
-                    }
-                }
+                LoadConfig();
+                LoadBlocks();
+
+                if (_doNotRun) return;
+
+                MainLoop(argument, updateSource);
+
             } finally {
+                Echo(_log.GetLogText());
                 DisplayRaceInfo();
                 ShowDebugLog();
             }
 
+        }
+
+        private void LoadBlocks() {
+            var reloadBlocks = _timeLastBlockLoad >= BLOCK_RELOAD_TIME;
+            if (!_doNotRun && !reloadBlocks)
+                return;
+
+            _doNotRun = false;
+            _timeLastBlockLoad = 0;
+
+            GridTerminalSystem.GetBlocksOfType(_currentRaceDisplays, b => b.IsSameConstructAs(Me) && Collect.IsTagged(b, _tag_CurrentRaceInfo));
+            GridTerminalSystem.GetBlocksOfType(_previousRaceDisplays, b => b.IsSameConstructAs(Me) && Collect.IsTagged(b, _tag_PreviousRaceInfo1));
+            GridTerminalSystem.GetBlocksOfType(_previousRace2Displays, b => b.IsSameConstructAs(Me) && Collect.IsTagged(b, _tag_PreviousRaceInfo2));
+            GridTerminalSystem.GetBlocksOfType(_raceStartConnectors, b => b.IsSameConstructAs(Me) && Collect.IsTagged(b, _tag_StartConnector));
+
+            _actionRelayTransmitter = GridTerminalSystem.GetBlockOfTypeWithFirst<IMyTransponder>(b => b.IsSameConstructAs(Me) && Collect.IsTagged(b, _tag_ActionRelayTransmitter));
+
+            _log.Clear();
+            _log.AppendLine("Required Blocks...");
+            _log.AppendLine($"  Action Relay: {(_actionRelayTransmitter != null ? "Found" : "NOT FOUND!!")}");
+            _log.AppendLine($"  Race Start Connectors: {_raceStartConnectors.Count}");
+            if (_actionRelayTransmitter == null || _raceStartConnectors.Count == 0) {
+                _log.AppendLine($"\nMissing Required Blocks!");
+                _doNotRun = true;
+            }
+            _log.AppendLine();
+
+            _log.AppendLine("Other Blocks...");
+            _log.AppendLine($"  Current Race Displays: {_currentRaceDisplays.Count}");
+            _log.AppendLine($"  Previous Race Displays 1: {_previousRaceDisplays.Count}");
+            _log.AppendLine($"  Previous Race Displays 2: {_previousRace2Displays.Count}");
+            _log.AppendLine();
+        }
+
+        void MainLoop(string argument, UpdateType updateSource) {
+            if (argument == RaceCenterCommands.CHECKPOINT && (updateSource & UpdateType.IGC) == UpdateType.IGC) {
+                var commData = _listener.AcceptMessage().Data as string;
+                CommandCheckpoint(commData);
+                return;
+            }
+
+            argument = argument.ToLower();
+            if (!string.IsNullOrEmpty(argument)) {
+                Debug($"cmd: {argument}");
+                switch (argument) {
+                    case RaceCenterCommands.START: CommandStart(); break;
+                    case RaceCenterCommands.STOP: CommandStop(); break;
+                    case RaceCenterCommands.INIT: CommandInit(); break;
+                    case RaceCenterCommands.RESET: CommandReset(); break;
+                    default: Debug($"Unknown command: {argument}"); break;
+                }
+            }
         }
 
         void CommandReset() {
