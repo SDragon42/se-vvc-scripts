@@ -38,10 +38,9 @@ namespace IngameScript {
         readonly List<IMyTextPanel> _currentRaceDisplays = new List<IMyTextPanel>();
         readonly List<IMyTextPanel> _previousRaceDisplays = new List<IMyTextPanel>();
         readonly List<IMyTextPanel> _previousRace2Displays = new List<IMyTextPanel>();
+        readonly List<IMyTextPanel> _raceStandingsDisplays = new List<IMyTextPanel>();
         readonly List<IMyShipConnector> _raceStartConnectors = new List<IMyShipConnector>();
         IMyTransponder _actionRelayTransmitter;
-        readonly RunningSymbol _runningModule = new RunningSymbol();
-        readonly Logging _log = new Logging();
 
         Action<string> Debug;
         Action ShowDebugLog;
@@ -51,6 +50,9 @@ namespace IngameScript {
         bool _updatePreviousRaceInfo = false;
         string _previousRaceInfo = string.Empty;
         bool _doNotRun = false;
+
+        RaceStandings _standings = new RaceStandings();
+        bool _updateRaceStandings = true;
 
         readonly char[] _splitChar = new char[] { '|' };
 
@@ -70,12 +72,17 @@ namespace IngameScript {
             _listener = IGC.RegisterBroadcastListener(IGCTags.CHECKPOINT);
             _listener.SetMessageCallback(RaceCenterCommands.CHECKPOINT);
 
+            _standings.Load(Storage);
+
             CommandReset();
         }
+        public void Save() {
+            Storage = _standings.Save();
+        }
+
 
         public void Main(string argument, UpdateType updateSource) {
             _timeLastBlockLoad += Runtime.TimeSinceLastRun.TotalSeconds;
-            Echo($"VVC Race Timer {_runningModule.GetSymbol()}");
 
             try {
                 LoadConfig();
@@ -86,8 +93,9 @@ namespace IngameScript {
                 MainLoop(argument, updateSource);
 
             } finally {
-                Echo(_log.GetLogText());
                 DisplayRaceInfo();
+                DisplayRaceStandings(_updateRaceStandings);
+                _updateRaceStandings = false;
                 ShowDebugLog();
             }
 
@@ -104,25 +112,31 @@ namespace IngameScript {
             GridTerminalSystem.GetBlocksOfType(_currentRaceDisplays, b => b.IsSameConstructAs(Me) && Collect.IsTagged(b, _tag_CurrentRaceInfo));
             GridTerminalSystem.GetBlocksOfType(_previousRaceDisplays, b => b.IsSameConstructAs(Me) && Collect.IsTagged(b, _tag_PreviousRaceInfo1));
             GridTerminalSystem.GetBlocksOfType(_previousRace2Displays, b => b.IsSameConstructAs(Me) && Collect.IsTagged(b, _tag_PreviousRaceInfo2));
+            GridTerminalSystem.GetBlocksOfType(_raceStandingsDisplays, b => b.IsSameConstructAs(Me) && Collect.IsTagged(b, _tag_RaceStandings));
             GridTerminalSystem.GetBlocksOfType(_raceStartConnectors, b => b.IsSameConstructAs(Me) && Collect.IsTagged(b, _tag_StartConnector));
 
             _actionRelayTransmitter = GridTerminalSystem.GetBlockOfTypeWithFirst<IMyTransponder>(b => b.IsSameConstructAs(Me) && Collect.IsTagged(b, _tag_ActionRelayTransmitter));
 
-            _log.Clear();
-            _log.AppendLine("Required Blocks...");
-            _log.AppendLine($"  Action Relay: {(_actionRelayTransmitter != null ? "Found" : "NOT FOUND!!")}");
-            _log.AppendLine($"  Race Start Connectors: {_raceStartConnectors.Count}");
+            var sb = new StringBuilder();
+            sb.AppendLine("VVC Race Timer");
+            sb.AppendLine("\nRequired Blocks...");
+            sb.AppendLine($"  Action Relay:      {(_actionRelayTransmitter != null ? "Found" : "Not Found")}");
+            sb.AppendLine($"  Start Connectors:  {_raceStartConnectors.Count}");
             if (_actionRelayTransmitter == null || _raceStartConnectors.Count == 0) {
-                _log.AppendLine($"\nMissing Required Blocks!");
+                sb.AppendLine($"\nMissing Required Blocks!!");
                 _doNotRun = true;
             }
-            _log.AppendLine();
+            sb.AppendLine("\nDisplay Blocks...");
+            sb.AppendLine($"  Current Race:     {_currentRaceDisplays.Count}");
+            sb.AppendLine($"  Previous Race 1:  {_previousRaceDisplays.Count}");
+            sb.AppendLine($"  Previous Race 2:  {_previousRace2Displays.Count()}");
+            sb.AppendLine($"  Race Standings:   {_raceStandingsDisplays.Count}");
 
-            _log.AppendLine("Other Blocks...");
-            _log.AppendLine($"  Current Race Displays: {_currentRaceDisplays.Count}");
-            _log.AppendLine($"  Previous Race Displays 1: {_previousRaceDisplays.Count}");
-            _log.AppendLine($"  Previous Race Displays 2: {_previousRace2Displays.Count}");
-            _log.AppendLine();
+            var pbDisplay = Me.GetSurface(0);
+            pbDisplay.ContentType = ContentType.TEXT_AND_IMAGE;
+            pbDisplay.FontSize = 0.8f;
+            pbDisplay.Font = "Monospace";
+            pbDisplay.WriteText(sb.ToString());
         }
 
         void MainLoop(string argument, UpdateType updateSource) {
@@ -140,6 +154,7 @@ namespace IngameScript {
                     case RaceCenterCommands.STOP: CommandStop(); break;
                     case RaceCenterCommands.INIT: CommandInit(); break;
                     case RaceCenterCommands.RESET: CommandReset(); break;
+                    case RaceCenterCommands.CLEAR_STANDINGS: CommandClearStandings(); break;
                     default: Debug($"Unknown command: {argument}"); break;
                 }
             }
@@ -155,7 +170,7 @@ namespace IngameScript {
                 Debug("Race is currently running");
                 return;
             }
-            var shipName = GetShipName();
+            var shipName = RetrieveConnectedShipName();
             _racerDetails.Initialize(shipName);
             IGC.SendBroadcastMessage(IGCTags.RACE_TIME_SIGN, RaceTimeSignCommands.INIT);
             _actionRelayTransmitter?.SendSignal(CHANNEL_RESET_CHECKPOINTS);
@@ -202,9 +217,16 @@ namespace IngameScript {
             _racerDetails.Stop();
             IGC.SendBroadcastMessage(IGCTags.RACE_TIME_SIGN, $"{RaceTimeSignCommands.STOP}|{_racerDetails.RaceDuration}");
             _updatePreviousRaceInfo = true;
+
+            _standings.AddToStanding(_racerDetails.RacerShipName, _racerDetails.RaceDuration);
+            _updateRaceStandings = true;
+        }
+        void CommandClearStandings() {
+            _standings.Clear();
+            _updateRaceStandings = true;
         }
 
-        string GetShipName() {
+        string RetrieveConnectedShipName() {
             if (_raceStartConnectors.Count == 0) return null;
             var connector = _raceStartConnectors.FirstOrDefault(b => b.Status == MyShipConnectorStatus.Connected);
             if (connector == null) return null;
@@ -212,46 +234,6 @@ namespace IngameScript {
             return !string.IsNullOrEmpty(shipName)
                 ? shipName
                 : BLANK_SHIP_NAME;
-        }
-
-        private void DisplayRaceInfo() {
-            var message = BuildRaceInfoText();
-            WriteToAllDisplays(_currentRaceDisplays, message);
-            if (_updatePreviousRaceInfo) {
-                _updatePreviousRaceInfo = false;
-                WriteToAllDisplays(_previousRaceDisplays, "Previous Race\n\n" + message);
-                if (!string.IsNullOrEmpty(_previousRaceInfo))
-                    WriteToAllDisplays(_previousRace2Displays, "Previous Race 2\n\n" + _previousRaceInfo);
-                _previousRaceInfo = message;
-            }
-        }
-        private string BuildRaceInfoText() {
-            var text = new StringBuilder();
-
-            var timeString = _racerDetails.RaceDuration.ToRaceTimeString();
-            if (_racerDetails.RacerShipName != null)
-                text.AppendLine($"Ship: {_racerDetails.RacerShipName}");
-            text.AppendLine($"Time: {timeString}");
-
-            if (_racerDetails.CheckpointLog.Count > 0) {
-                text.AppendLine();
-                var maxNameLength = _racerDetails.CheckpointLog.Max(entry => entry.Name.Length);
-                var header = "".PadRight(maxNameLength) + "     Split       Total";
-                text.AppendLine(header);
-                foreach (var entry in _racerDetails.CheckpointLog) {
-                    var timeFromStart = entry.TimeFromStart.ToRaceTimeString();
-                    var timeFromLastCheckpoint = entry.TimeFromLastCheckpoint.ToRaceTimeString();
-                    text.AppendLine($"{entry.Name.PadRight(maxNameLength)} | {timeFromLastCheckpoint} | {timeFromStart} |");
-                }
-            }
-
-            return text.ToString();
-        }
-
-        private void WriteToAllDisplays(IEnumerable<IMyTextPanel> displays, string text) {
-            foreach (IMyTextSurface surface in displays) {
-                surface.WriteText(text);
-            }
         }
 
     }
