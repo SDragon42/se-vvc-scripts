@@ -1,4 +1,4 @@
-// <mdk sortorder="20" />
+﻿// <mdk sortorder="10" />
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -20,17 +20,13 @@ using VRage.Game.ObjectBuilders.Definitions;
 using VRageMath;
 
 namespace IngameScript {
-    partial class Program {
-        class CheckpointLogEntry {
-            public string Name { get; private set; }
-            public TimeSpan TimeFromStart { get; private set; }
-            public TimeSpan TimeFromLastCheckpoint { get; private set; }
+    public partial class Program : MyGridProgram {
 
-            public CheckpointLogEntry(string name, long ticksFromStart, long ticksFromLastCheckpoint) {
-                Name = name;
-                TimeFromStart = TimeSpan.FromTicks(ticksFromStart);
-                TimeFromLastCheckpoint = TimeSpan.FromTicks(ticksFromLastCheckpoint);
-            }
+        public void Main(string argument, UpdateType updateSource) {
+            var message = $"{argument}|{DateTime.Now.Ticks}";
+            IGC.SendBroadcastMessage(IGCTags.CHECKPOINT, message);
+            Debug($">>: {message}");
+            ShowDebugLog();
         }
     }
 }

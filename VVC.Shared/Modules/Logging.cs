@@ -21,6 +21,7 @@ using VRageMath;
 
 namespace IngameScript {
     partial class Program {
+
         class Logging {
 
             readonly List<string> _lines = new List<string>();
@@ -75,5 +76,6 @@ namespace IngameScript {
                 return sb.ToString();
             }
         }
+        
     }
 }

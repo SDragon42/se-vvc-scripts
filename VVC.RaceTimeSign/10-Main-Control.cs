@@ -22,40 +22,6 @@ using VRageMath;
 namespace IngameScript {
     public partial class Program : MyGridProgram {
 
-        // Do not change these values, they are used by the script.
-        //////////////////////////////////////////////////////////////////////
-        DateTime _raceStartTime;
-        bool _raceIsRunning = false;
-
-        IMyBroadcastListener _listener = null;
-
-
-
-
-        readonly char[] _separator = new char[] { '|' };
-
-        Action<string> Debug;
-        Action ShowDebugLog;
-
-        public Program() {
-            Debug = (t) => { };
-            ShowDebugLog = () => { };
-            // Comment this block to remove debugging displays
-            // {
-            //     var log = new DebugLogging(this);
-            //     log.EchoMessages = true;
-            //     Debug = (t) => log.AppendLine(t);
-            //     ShowDebugLog = () => log.UpdateDisplay();
-            // }
-
-            Runtime.UpdateFrequency = UpdateFrequency.Update10;
-
-            InitializePanelSegments();
-
-            _listener = IGC.RegisterBroadcastListener(IGCTags.RACE_TIME_SIGN);
-            _listener.SetMessageCallback(RaceTimeSignCommands.SET_TIME);
-        }
-
         public void Main(string argument, UpdateType updateSource) {
             try {
                 var argParts = ProcessArgument(ref argument);
@@ -88,32 +54,6 @@ namespace IngameScript {
                 parts.Length >= 1 ? parts[0].ToLower() : string.Empty,
                 parts.Length >= 2 ? parts[1] : string.Empty
             };
-        }
-
-        void CommandStart(string startTimeTicks) {
-            long startTicks;
-            _raceStartTime = long.TryParse(startTimeTicks, out startTicks)
-                ? new DateTime(startTicks)
-                : DateTime.Now;
-            _raceIsRunning = true;
-            Debug("Race started!");
-        }
-        void CommandStop(string timeString) {
-            _raceIsRunning = false;
-            CommandSetTime(timeString);
-            Debug("Race ended!");
-        }
-        void CommandReset() {
-            _raceIsRunning = false;
-            Update13PanelLightDisplay(TimeSpan.Zero);
-        }
-        void CommandSetTime(string timeString) {
-            if (string.IsNullOrWhiteSpace(timeString))
-                return;
-            TimeSpan time;
-            if (TimeSpan.TryParse(timeString, out time)) {
-                Update13PanelLightDisplay(time);
-            }
         }
 
     }

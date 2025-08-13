@@ -1,4 +1,4 @@
-﻿// <mdk sortorder="10" />
+// <mdk sortorder="10" />
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -22,9 +22,6 @@ using VRageMath;
 namespace IngameScript {
     public partial class Program : MyGridProgram {
 
-        // Do not change these values, they are used by the script.
-        //////////////////////////////////////////////////////////////////////
-        
         Action<string> Debug;
         Action ShowDebugLog;
 
@@ -38,13 +35,14 @@ namespace IngameScript {
             //     Debug = (t) => log.AppendLine(t);
             //     ShowDebugLog = () => log.UpdateDisplay();
             // }
+
+            var pbDisplay = Me.GetSurface(0);
+            pbDisplay.ContentType = ContentType.TEXT_AND_IMAGE;
+            pbDisplay.Alignment = TextAlignment.CENTER;
+            pbDisplay.FontSize = 2f;
+            pbDisplay.FontColor = new Color(0, 150, 200);
+            pbDisplay.WriteText("VCC Script:\nCheckpoint");
         }
 
-        public void Main(string argument, UpdateType updateSource) {
-            var message = $"{argument}|{DateTime.Now.Ticks}";
-            IGC.SendBroadcastMessage(IGCTags.CHECKPOINT, message);
-            Debug($">>: {message}");
-            ShowDebugLog();
-        }
     }
 }

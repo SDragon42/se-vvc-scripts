@@ -20,10 +20,12 @@ using VRage.Game.ObjectBuilders.Definitions;
 using VRageMath;
 
 namespace IngameScript {
+
     partial class Program {
         static class IGCTags {
             public const string CHECKPOINT = "VVC.Checkpoint";
             public const string RACE_TIME_SIGN = "VVC.RaceTimeSign";
         }
     }
+    
 }
