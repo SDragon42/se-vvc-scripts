@@ -29,14 +29,15 @@ namespace IngameScript {
         Action ShowDebugLog;
 
         public Program() {
-            Debug = Echo;
+            Debug = (t) => { };
             ShowDebugLog = () => { };
-
-            // Comment these lines to remove debugging displays
-            // var log = new DebugLogging(this);
-            // log.EchoMessages = true;
-            // Debug = (t) => log.AppendLine(t);
-            // ShowDebugLog = () => log.UpdateDisplay();
+            // Comment this block to remove debugging displays
+            // {
+            //     var log = new DebugLogging(this);
+            //     log.EchoMessages = true;
+            //     Debug = (t) => log.AppendLine(t);
+            //     ShowDebugLog = () => log.UpdateDisplay();
+            // }
         }
 
         public void Main(string argument, UpdateType updateSource) {

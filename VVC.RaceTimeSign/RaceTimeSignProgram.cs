@@ -34,19 +34,19 @@ namespace IngameScript {
 
         readonly char[] _separator = new char[] { '|' };
 
-        readonly RunningSymbol _runningModule = new RunningSymbol();
         Action<string> Debug;
         Action ShowDebugLog;
 
         public Program() {
-            Debug = Echo;
+            Debug = (t) => { };
             ShowDebugLog = () => { };
-
-            // Comment these lines to remove debugging displays
-            // var log = new DebugLogging(this);
-            // log.EchoMessages = true;
-            // Debug = (t) => log.AppendLine(t);
-            // ShowDebugLog = () => log.UpdateDisplay();
+            // Comment this block to remove debugging displays
+            // {
+            //     var log = new DebugLogging(this);
+            //     log.EchoMessages = true;
+            //     Debug = (t) => log.AppendLine(t);
+            //     ShowDebugLog = () => log.UpdateDisplay();
+            // }
 
             Runtime.UpdateFrequency = UpdateFrequency.Update10;
 
@@ -57,7 +57,6 @@ namespace IngameScript {
         }
 
         public void Main(string argument, UpdateType updateSource) {
-            Echo($"VVC Race Time Sign {_runningModule.GetSymbol()}");
             try {
                 var argParts = ProcessArgument(ref argument);
 

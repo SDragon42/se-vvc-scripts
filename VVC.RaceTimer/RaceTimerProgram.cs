@@ -58,14 +58,15 @@ namespace IngameScript {
 
 
         public Program() {
-            Debug = Echo;
+            Debug = (t) => { };
             ShowDebugLog = () => { };
-
-            // Comment these lines to remove debugging displays
-            // var log = new DebugLogging(this);
-            // log.EchoMessages = true;
-            // Debug = (t) => log.AppendLine($"{DateTime.Now:mm:ss.fff}> {t}");
-            // ShowDebugLog = () => log.UpdateDisplay();
+            // Comment this block to remove debugging displays
+            // {
+            //     var log = new DebugLogging(this);
+            //     log.EchoMessages = true;
+            //     Debug = (t) => log.AppendLine(t);
+            //     ShowDebugLog = () => log.UpdateDisplay();
+            // }
 
             Runtime.UpdateFrequency = UpdateFrequency.Update10;
 
@@ -116,27 +117,27 @@ namespace IngameScript {
             GridTerminalSystem.GetBlocksOfType(_raceStartConnectors, b => b.IsSameConstructAs(Me) && Collect.IsTagged(b, _tag_StartConnector));
 
             _actionRelayTransmitter = GridTerminalSystem.GetBlockOfTypeWithFirst<IMyTransponder>(b => b.IsSameConstructAs(Me) && Collect.IsTagged(b, _tag_ActionRelayTransmitter));
-
-            var sb = new StringBuilder();
-            sb.AppendLine("VVC Race Timer");
-            sb.AppendLine("\nRequired Blocks...");
-            sb.AppendLine($"  Action Relay:      {(_actionRelayTransmitter != null ? "Found" : "Not Found")}");
-            sb.AppendLine($"  Start Connectors:  {_raceStartConnectors.Count}");
-            if (_actionRelayTransmitter == null || _raceStartConnectors.Count == 0) {
-                sb.AppendLine($"\nMissing Required Blocks!!");
-                _doNotRun = true;
-            }
-            sb.AppendLine("\nDisplay Blocks...");
-            sb.AppendLine($"  Current Race:     {_currentRaceDisplays.Count}");
-            sb.AppendLine($"  Previous Race 1:  {_previousRaceDisplays.Count}");
-            sb.AppendLine($"  Previous Race 2:  {_previousRace2Displays.Count()}");
-            sb.AppendLine($"  Race Standings:   {_raceStandingsDisplays.Count}");
-
-            var pbDisplay = Me.GetSurface(0);
-            pbDisplay.ContentType = ContentType.TEXT_AND_IMAGE;
-            pbDisplay.FontSize = 0.8f;
-            pbDisplay.Font = "Monospace";
-            pbDisplay.WriteText(sb.ToString());
+            //
+            // var sb = new StringBuilder();
+            // sb.AppendLine("VVC Race Timer");
+            // sb.AppendLine("\nRequired Blocks...");
+            // sb.AppendLine($"  Action Relay:      {(_actionRelayTransmitter != null ? "Found" : "Not Found")}");
+            // sb.AppendLine($"  Start Connectors:  {_raceStartConnectors.Count}");
+            // if (_actionRelayTransmitter == null || _raceStartConnectors.Count == 0) {
+            //     sb.AppendLine($"\nMissing Required Blocks!!");
+            //     _doNotRun = true;
+            // }
+            // sb.AppendLine("\nDisplay Blocks...");
+            // sb.AppendLine($"  Current Race:     {_currentRaceDisplays.Count}");
+            // sb.AppendLine($"  Previous Race 1:  {_previousRaceDisplays.Count}");
+            // sb.AppendLine($"  Previous Race 2:  {_previousRace2Displays.Count()}");
+            // sb.AppendLine($"  Race Standings:   {_raceStandingsDisplays.Count}");
+            //
+            // var pbDisplay = Me.GetSurface(0);
+            // pbDisplay.ContentType = ContentType.TEXT_AND_IMAGE;
+            // pbDisplay.FontSize = 0.8f;
+            // pbDisplay.Font = "Monospace";
+            // pbDisplay.WriteText(sb.ToString());
         }
 
         void MainLoop(string argument, UpdateType updateSource) {
