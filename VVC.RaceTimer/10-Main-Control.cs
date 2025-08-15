@@ -28,22 +28,25 @@ namespace IngameScript {
                 LoadConfig();
                 LoadBlocks();
 
-                if (argument == RaceCenterCommands.CHECKPOINT && (updateSource & UpdateType.IGC) == UpdateType.IGC) {
+                string commandData = null;
+                var command = ParseArgument(argument, out commandData);
+
+                if (command == RaceCenterCommands.CHECKPOINT && (updateSource & UpdateType.IGC) == UpdateType.IGC) {
                     var commData = _listener.AcceptMessage().Data as string;
                     CommandCheckpoint(commData);
                     return;
                 }
-
-                argument = argument.ToLower();
-                if (!string.IsNullOrEmpty(argument)) {
-                    Debug($"cmd: {argument}");
-                    switch (argument) {
+                
+                if (!string.IsNullOrEmpty(command)) {
+                    Debug($"cmd: {command}");
+                    switch (command) {
                         case RaceCenterCommands.START: CommandStart(); break;
                         case RaceCenterCommands.STOP: CommandStop(); break;
                         case RaceCenterCommands.INIT: CommandInit(); break;
                         case RaceCenterCommands.RESET: CommandReset(); break;
                         case RaceCenterCommands.CLEAR_STANDINGS: CommandClearStandings(); break;
-                        default: Debug($"Unknown command: {argument}"); break;
+                        case RaceCenterCommands.REMOVE_STANDING: CommandRemoveStanding(commandData); break;
+                        default: Debug($"Unknown command: {command}"); break;
                     }
                 }
 
@@ -53,6 +56,18 @@ namespace IngameScript {
                 ShowDebugLog();
             }
 
+        }
+
+        string ParseArgument(string argument, out string commandData) {
+            commandData = null;
+            if (string.IsNullOrEmpty(argument))
+                return null;
+
+            var parts = argument.Split(new[] { ' ' }, 2);
+            if (parts.Length >= 2)
+                commandData = parts[1].Trim();
+
+            return parts[0].Trim().ToLower();
         }
 
     }

@@ -29,6 +29,7 @@ namespace IngameScript {
             public const string RESET = "reset";
             public const string CHECKPOINT = "checkpoint";
             public const string CLEAR_STANDINGS = "clear-standings";
+            public const string REMOVE_STANDING = "remove-standing";
         }
 
         static class RaceTimeSignCommands {

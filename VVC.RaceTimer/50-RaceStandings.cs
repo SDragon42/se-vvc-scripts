@@ -51,6 +51,13 @@ namespace IngameScript {
                 _raceStandings.Clear();
             }
 
+            public void RemoveFromStanding(string shipName) {
+                if (string.IsNullOrEmpty(shipName)) return;
+                if (_raceStandings.ContainsKey(shipName)) {
+                    _raceStandings.Remove(shipName);
+                }
+            }
+
             public void AddToStanding(string shipName, TimeSpan time) {
                 if (string.IsNullOrEmpty(shipName)) return;
                 if (_raceStandings.ContainsKey(shipName)) {

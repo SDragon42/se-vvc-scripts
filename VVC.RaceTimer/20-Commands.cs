@@ -94,6 +94,14 @@ namespace IngameScript {
             _updateRaceStandings = true;
         }
 
+        void CommandRemoveStanding(string shipName) {
+            if (string.IsNullOrEmpty(shipName)) {
+                Debug("Invalid ship name.");
+                return;
+            }
+            _standings.RemoveFromStanding(shipName.Trim());
+            _updateRaceStandings = true;
+        }
 
         string RetrieveConnectedShipName() {
             if (_raceStartConnectors.Count == 0)
