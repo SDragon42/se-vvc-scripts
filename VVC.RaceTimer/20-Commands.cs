@@ -33,7 +33,8 @@ namespace IngameScript {
                 return;
             }
             var shipName = RetrieveConnectedShipName();
-            _racerDetails.Initialize(shipName);
+            _racerDetails.Initialize(shipName,
+                                     _standings.GetTimeForShip(shipName));
             IGC.SendBroadcastMessage(IGCTags.RACE_TIME_SIGN, RaceTimeSignCommands.INIT);
             _actionRelayTransmitter?.SendSignal(CHANNEL_RESET_CHECKPOINTS);
         }
@@ -69,6 +70,7 @@ namespace IngameScript {
             long ticks;
             if (!long.TryParse(parts[1], out ticks)) {
                 Debug($"Invalid ticks value: {parts[1]}");
+                return;
             }
 
             _racerDetails.AddCheckpoint(name, ticks);
@@ -94,9 +96,13 @@ namespace IngameScript {
 
 
         string RetrieveConnectedShipName() {
-            if (_raceStartConnectors.Count == 0) return null;
+            if (_raceStartConnectors.Count == 0)
+                return null;
+
             var connector = _raceStartConnectors.FirstOrDefault(b => b.Status == MyShipConnectorStatus.Connected);
-            if (connector == null) return null;
+            if (connector == null)
+                return null;
+
             var shipName = connector.OtherConnector?.CubeGrid.CustomName;
             return !string.IsNullOrEmpty(shipName)
                 ? shipName

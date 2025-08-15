@@ -29,21 +29,32 @@ namespace IngameScript {
             public long EndTimeTicks { get; private set; } = 0;
             public bool IsRaceActive { get; private set; } = false;
 
+            public TimeSpan? PersonalBest { get; set; } = null;
+
             private long _lastCheckpointTicks = 0;
             public List<CheckpointLogEntry> CheckpointLog { get; private set; } = new List<CheckpointLogEntry>(100);
             public int MaxCheckpointNameLength { get; private set; } = DefaultMaxCheckpointNameLength; // default for no values
 
 
             private long CurrentTimeTicks => IsRaceActive ? DateTime.Now.Ticks : EndTimeTicks;
-            public TimeSpan RaceDuration => TimeSpan.FromTicks(CurrentTimeTicks - StartTimeTicks);
+            public TimeSpan RaceDuration => TimeSpan.FromTicks(CurrentTimeTicks - StartTimeTicks).Duration();
+            public TimeSpan? TimeOffPersonalBest {
+                get {
+                    return PersonalBest.HasValue
+                        ? RaceDuration - PersonalBest.Value
+                        : (TimeSpan?)null;
+                }
+            }
 
 
-            public void Initialize(string racerShipName = null) {
+            public void Initialize() => Initialize(null, null);
+            public void Initialize(string racerShipName, TimeSpan? personalBest) {
                 RacerShipName = racerShipName;
                 StartTimeTicks = 0;
                 EndTimeTicks = 0;
                 _lastCheckpointTicks = 0;
                 IsRaceActive = false;
+                PersonalBest = personalBest;
                 CheckpointLog.Clear();
             }
 

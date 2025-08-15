@@ -20,6 +20,14 @@ using VRageMath;
 
 namespace IngameScript {
     static class VccExtensions {
-        public static string ToRaceTimeString(this TimeSpan time) => $"{(int)time.TotalMinutes:D2}:{time.Seconds:D2}.{time.Milliseconds:D3}";
+        public static string ToRaceTimeString(this TimeSpan time) {
+            return $"{(int)time.TotalMinutes:D2}:{time.Seconds:D2}.{time.Milliseconds:D3}";
+        }
+
+        public static string ToRaceTimeShortString(this TimeSpan time) {
+            return (time.TotalSeconds >= 60)
+                    ? $"{(int)time.TotalMinutes}:{time.Seconds:D2}.{time.Milliseconds:D3}"
+                    : $"{time.Seconds}.{time.Milliseconds:D3}";
+        }
     }
 }

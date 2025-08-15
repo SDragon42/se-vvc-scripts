@@ -52,6 +52,7 @@ namespace IngameScript {
             }
 
             public void AddToStanding(string shipName, TimeSpan time) {
+                if (string.IsNullOrEmpty(shipName)) return;
                 if (_raceStandings.ContainsKey(shipName)) {
                     if (time < _raceStandings[shipName])
                         _raceStandings[shipName] = time;
@@ -62,6 +63,15 @@ namespace IngameScript {
 
             public IEnumerable<KeyValuePair<string, TimeSpan>> GetStandings() {
                 return _raceStandings.OrderBy(entry => entry.Value);
+            }
+
+            public TimeSpan? GetTimeForShip(string shipName) {
+                if (string.IsNullOrEmpty(shipName)) return null;
+                TimeSpan time;
+                if (_raceStandings.TryGetValue(shipName, out time)) {
+                    return time;
+                }
+                return null;
             }
 
         }

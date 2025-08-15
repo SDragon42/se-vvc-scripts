@@ -51,7 +51,14 @@ namespace IngameScript {
             if (_racerDetails.IsRaceActive) {
                 text.AppendLine(ChkLine("", _racerDetails.MaxCheckpointNameLength, null, duration));
             } else if (duration.Ticks > 0) {
-                text.AppendLine($"\nFinal Time : {duration.ToRaceTimeString()}");
+                text.Append($"\nTime:  {duration.ToRaceTimeString()}");
+
+                var timeDiff = _racerDetails.TimeOffPersonalBest;
+                if (timeDiff.HasValue) {
+                    var symbol = timeDiff.Value.TotalSeconds < 0 ? "-" : "+";
+                    var timeString = symbol + timeDiff.Value.Duration().ToRaceTimeShortString();
+                    text.AppendLine($"{timeString,12}");
+                }
             }
 
             return text.ToString();
