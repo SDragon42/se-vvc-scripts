@@ -36,10 +36,9 @@ namespace IngameScript {
         public Program() {
             Debug = (t) => { };
             ShowDebugLog = () => { };
-            // Comment this block to remove debugging displays
-            // {
+            // { // Un-comment this block to add debugging displays
             //     var log = new DebugLogging(this);
-            //     log.EchoMessages = true;
+            //     log.EchoMessages = false;
             //     Debug = (t) => log.AppendLine(t);
             //     ShowDebugLog = () => log.UpdateDisplay();
             // }
