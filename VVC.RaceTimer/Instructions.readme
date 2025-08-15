@@ -1,2 +1,26 @@
 ﻿VVC Race Timer script  v1.6
 by SDragon
+
+Commands:
+    init
+        Reads the connected ship name and gets the race ready to go.
+
+    start
+        Starts the race.
+
+    stop
+        Finishes the race.
+
+    checkpoint
+        Records the checkpoint name and time.
+
+    reset
+        Resets the script.
+
+    clear-standings
+        Clears all race standing information.
+
+    remove-standing
+        Remove a ship name from the race standings.
+        Usage:
+            remove-standing Ship Name here
