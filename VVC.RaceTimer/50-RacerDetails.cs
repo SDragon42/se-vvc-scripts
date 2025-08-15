@@ -1,4 +1,3 @@
-// <mdk sortorder="20" />
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -23,6 +22,8 @@ namespace IngameScript {
     partial class Program {
         
         class RacerDetails {
+            const int DefaultMaxCheckpointNameLength = 4;
+
             public string RacerShipName { get; private set; } = null;
             public long StartTimeTicks { get; private set; } = 0;
             public long EndTimeTicks { get; private set; } = 0;
@@ -30,6 +31,7 @@ namespace IngameScript {
 
             private long _lastCheckpointTicks = 0;
             public List<CheckpointLogEntry> CheckpointLog { get; private set; } = new List<CheckpointLogEntry>(100);
+            public int MaxCheckpointNameLength { get; private set; } = DefaultMaxCheckpointNameLength; // default for no values
 
 
             private long CurrentTimeTicks => IsRaceActive ? DateTime.Now.Ticks : EndTimeTicks;
@@ -59,6 +61,7 @@ namespace IngameScript {
                 if (!IsRaceActive)
                     return;
                 EndTimeTicks = DateTime.Now.Ticks;
+                AddCheckpoint("FNSH", EndTimeTicks);
                 IsRaceActive = false;
             }
 
@@ -69,6 +72,7 @@ namespace IngameScript {
                 var ticksFromLastCheckpoint = checkpointTimeTicks - _lastCheckpointTicks;
                 var entry = new CheckpointLogEntry(checkpointName, ticksFromStart, ticksFromLastCheckpoint);
                 CheckpointLog.Add(entry);
+                MaxCheckpointNameLength = Math.Max(MaxCheckpointNameLength, entry.Name.Length);
                 _lastCheckpointTicks = checkpointTimeTicks;
             }
 

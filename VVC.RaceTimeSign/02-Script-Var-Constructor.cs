@@ -50,6 +50,13 @@ namespace IngameScript {
 
             _listener = IGC.RegisterBroadcastListener(IGCTags.RACE_TIME_SIGN);
             _listener.SetMessageCallback(RaceTimeSignCommands.SET_TIME);
+
+            var pbDisplay = Me.GetSurface(0);
+            pbDisplay.ContentType = ContentType.TEXT_AND_IMAGE;
+            pbDisplay.Alignment = TextAlignment.CENTER;
+            pbDisplay.FontSize = 2f;
+            pbDisplay.FontColor = new Color(0, 150, 200);
+            pbDisplay.WriteText("VCC Script:\nRace Time\nSign");
         }
 
     }

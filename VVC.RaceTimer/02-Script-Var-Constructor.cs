@@ -1,4 +1,3 @@
-// <mdk sortorder="10" />
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -22,17 +21,7 @@ using VRageMath;
 namespace IngameScript {
     public partial class Program : MyGridProgram {
 
-        const double BLOCK_RELOAD_TIME = 10;
         double _timeLastBlockLoad = BLOCK_RELOAD_TIME * 2; // Force reload on first run
-
-        const string PREVIOUS_RACE_LCD_NAME = "LCD Panel - Previous Race Info";
-        const string PREVIOUS_RACE_2_LCD_NAME = "LCD Panel - Previous Race Info 2";
-        const string CONNECTOR_TAG = "[VVC-RaceStart]";
-        const string ACTION_RELAY_TRANSMITTER_NAME = "Action Relay - Transmitter";
-        const int CHANNEL_RESET_CHECKPOINTS = 100;
-
-        const string BLANK_SHIP_NAME = "[Name your damn ship!]";
-
 
         IMyBroadcastListener _listener = null;
         readonly List<IMyTextPanel> _currentRaceDisplays = new List<IMyTextPanel>();
@@ -52,8 +41,6 @@ namespace IngameScript {
 
         RaceStandings _standings = new RaceStandings();
         bool _updateRaceStandings = true;
-
-        readonly char[] _splitChar = new char[] { '|' };
 
 
         public Program() {

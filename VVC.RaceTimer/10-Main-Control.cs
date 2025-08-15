@@ -1,5 +1,4 @@
-﻿// <mdk sortorder="10" />
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -50,8 +49,7 @@ namespace IngameScript {
 
             } finally {
                 DisplayRaceInfo();
-                DisplayRaceStandings(_updateRaceStandings);
-                _updateRaceStandings = false;
+                DisplayRaceStandings();
                 ShowDebugLog();
             }
 
