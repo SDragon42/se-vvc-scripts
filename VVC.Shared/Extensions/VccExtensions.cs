@@ -29,5 +29,9 @@ namespace IngameScript {
                     ? $"{(int)time.TotalMinutes}:{time.Seconds:D2}.{time.Milliseconds:D3}"
                     : $"{time.Seconds}.{time.Milliseconds:D3}";
         }
+
+        public static string ToRaceTimeHighPrecisionString(this TimeSpan time) {
+            return $"{time.Minutes:D2}:{time.Seconds:D2}.{time.Ticks % TimeSpan.TicksPerSecond:D7}";
+        }
     }
 }

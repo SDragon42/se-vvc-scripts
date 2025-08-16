@@ -92,7 +92,7 @@ namespace IngameScript {
                 var name = entry.Key.Substring(0, Math.Min(entry.Key.Length, MAX_DISPLAY_SHIP_NAME_LENGTH));
                 name = name.PadRight(MAX_DISPLAY_SHIP_NAME_LENGTH, '.');
 
-                var time = entry.Value.ToRaceTimeString();
+                var time = entry.Value.ToRaceTimeHighPrecisionString();
 
                 sb.AppendLine($"{i,2} {name} {time}");
             }
