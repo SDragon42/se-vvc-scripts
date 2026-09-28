@@ -20,13 +20,13 @@ using VRageMath;
 namespace IngameScript {
 
     static class MyIniExtensions {
-        // Added the INI key/value to the MyIni object if it doesn't already exist, and returns the MyIniValue instance.
+        // Adds the INI key/value to the MyIni object if it doesn't already exist, and returns the MyIniValue instance.
         public static MyIniValue Add<T>(this MyIni ini, string section, string name, T value, string comment = null) where T : struct => ini.Add(new MyIniKey(section, name), value.ToString(), comment);
-        // Added the INI key/value to the MyIni object if it doesn't already exist, and returns the MyIniValue instance.
+        // Adds the INI key/value to the MyIni object if it doesn't already exist, and returns the MyIniValue instance.
         public static MyIniValue Add(this MyIni ini, string section, string name, string value, string comment = null) => ini.Add(new MyIniKey(section, name), value, comment);
-        // Added the INI key/value to the MyIni object if it doesn't already exist, and returns the MyIniValue instance.
+        // Adds the INI key/value to the MyIni object if it doesn't already exist, and returns the MyIniValue instance.
         public static MyIniValue Add<T>(this MyIni ini, MyIniKey key, T value, string comment = null) where T : struct => ini.Add(key, value.ToString(), comment);
-        // Added the INI key/value to the MyIni object if it doesn't already exist, and returns the MyIniValue instance.
+        // Adds the INI key/value to the MyIni object if it doesn't already exist, and returns the MyIniValue instance.
         public static MyIniValue Add(this MyIni ini, MyIniKey key, string value, string comment = null) {
             if (!ini.ContainsKey(key)) ini.Set(key, value);
             ini.SetComment(key, comment);
