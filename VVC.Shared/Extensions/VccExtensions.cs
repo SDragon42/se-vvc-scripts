@@ -19,6 +19,7 @@ using VRage.Game.ObjectBuilders.Definitions;
 using VRageMath;
 
 namespace IngameScript {
+
     static class VccExtensions {
 
         public static string ToRaceTimeString(this TimeSpan time) {
@@ -34,6 +35,6 @@ namespace IngameScript {
         public static string ToRaceTimeHighPrecisionString(this TimeSpan time) {
             return $"{time.Minutes:D2}:{time.Seconds:D2}.{time.Ticks % TimeSpan.TicksPerSecond:D7}";
         }
-
     }
+
 }

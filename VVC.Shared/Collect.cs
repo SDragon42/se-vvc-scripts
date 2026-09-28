@@ -21,7 +21,7 @@ using VRageMath;
 namespace IngameScript {
     partial class Program {
 
-        public partial class Collect {
+        static class Collect {
             public static bool IsTagged(IMyTerminalBlock b, string tag) => b.CustomName.IndexOf(tag, StringComparison.OrdinalIgnoreCase) >= 0;
         }
 
