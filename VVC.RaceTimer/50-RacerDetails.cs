@@ -20,7 +20,7 @@ using VRageMath;
 
 namespace IngameScript {
     partial class Program {
-        
+
         class RacerDetails {
             const int DefaultMaxCheckpointNameLength = 4;
 

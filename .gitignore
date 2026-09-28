@@ -482,3 +482,7 @@ $RECYCLE.BIN/
 
 # Vim temporary swap files
 *.swp
+
+# MDK
+mdk.local.ini
+*.mdk.local.ini

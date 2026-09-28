@@ -41,7 +41,7 @@ namespace IngameScript {
             _raceIsRunning = false;
             Update13PanelLightDisplay(TimeSpan.Zero);
         }
-        
+
         void CommandSetTime(string timeString) {
             if (string.IsNullOrWhiteSpace(timeString))
                 return;

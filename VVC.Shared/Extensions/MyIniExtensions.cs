@@ -19,6 +19,7 @@ using VRageMath;
 
 namespace IngameScript {
     static class MyIniExtensions {
+
         public static MyIniValue Add<T>(this MyIni ini, string section, string name, T value, string comment = null) where T : struct => ini.Add(new MyIniKey(section, name), value.ToString(), comment);
         public static MyIniValue Add(this MyIni ini, string section, string name, string value, string comment = null) => ini.Add(new MyIniKey(section, name), value, comment);
 
@@ -28,5 +29,6 @@ namespace IngameScript {
             ini.SetComment(key, comment);
             return ini.Get(key);
         }
+
     }
 }

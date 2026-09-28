@@ -31,19 +31,19 @@ namespace IngameScript {
         string _tag_StartConnector = "[VVC-RaceStart]";
         string _tag_ActionRelayTransmitter = "[VVC-Transmitter]";
         int _channelId_ResetCheckpoints = 100;
-        
+
 
         const string SECTION_REQUIRED_BLOCK_TAGS = "Required Block Tags";
         readonly MyIniKey Key_ActionRelayTransmitter = new MyIniKey(SECTION_REQUIRED_BLOCK_TAGS, "Action Relay Transmitter");
         readonly MyIniKey Key_StartConnector = new MyIniKey(SECTION_REQUIRED_BLOCK_TAGS, "Start Connector");
-        
+
 
         const string SECTION_BLOCK_TAGS = "Block Tags";
         readonly MyIniKey Key_CurrentRaceInfo = new MyIniKey(SECTION_BLOCK_TAGS, "Current Race Info");
         readonly MyIniKey Key_PreviousRaceInfo1 = new MyIniKey(SECTION_BLOCK_TAGS, "Previous Race Info 1");
         readonly MyIniKey Key_PreviousRaceInfo2 = new MyIniKey(SECTION_BLOCK_TAGS, "Previous Race Info 2");
         readonly MyIniKey Key_RaceStandings = new MyIniKey(SECTION_BLOCK_TAGS, "Race Standings");
-        
+
 
         const string SECTION_CHANNEL_IDS = "Channel IDs";
         readonly MyIniKey Key_ChannelId_ResetCheckpoints = new MyIniKey(SECTION_CHANNEL_IDS, "Reset Checkpoints");

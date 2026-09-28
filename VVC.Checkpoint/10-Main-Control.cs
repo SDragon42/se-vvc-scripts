@@ -28,5 +28,6 @@ namespace IngameScript {
             Debug($">>: {message}");
             ShowDebugLog();
         }
+
     }
 }
