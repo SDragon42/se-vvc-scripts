@@ -64,6 +64,6 @@ namespace IngameScript {
                 surface.WriteText(text);
             }
         }
-        
+
     }
 }

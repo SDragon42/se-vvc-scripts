@@ -1,5 +1,4 @@
-﻿// <mdk sortorder="10" />
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -28,5 +27,6 @@ namespace IngameScript {
             Debug($">>: {message}");
             ShowDebugLog();
         }
+
     }
 }

@@ -36,7 +36,7 @@ namespace IngameScript {
                     CommandCheckpoint(commData);
                     return;
                 }
-                
+
                 if (!string.IsNullOrEmpty(command)) {
                     Debug($"cmd: {command}");
                     switch (command) {

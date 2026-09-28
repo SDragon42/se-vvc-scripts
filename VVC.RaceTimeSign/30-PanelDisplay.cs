@@ -1,4 +1,3 @@
-// <mdk sortorder="20" />
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -23,24 +22,20 @@ namespace IngameScript {
     partial class Program {
 
         static readonly string[] DIGIT_PREFIXES_13PANEL = { "Min10", "Min1", "Sec10", "Sec1" };
+        static readonly string[] SEGMENT_NAMES_13PANEL = new string[] { "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M" };
+        static readonly bool[][] SEGMENT_PATTERNS_13PANEL = new bool[][] {
+            new bool[] {true, true, true, true, true, true, false, true, true, true, true, true, true}, // 0
+            new bool[] {false, false, true, false, true, false, false, true, false, true, false, false, true}, // 1
+            new bool[] {true, true, true, false, true, true, true, true, true, false, true, true, true}, // 2
+            new bool[] {true, true, true, false, true, false, true, true, false, true, true, true, true}, // 3
+            new bool[] {true, false, true, true, true, true, true, true, false, true, false, false, true}, // 4
+            new bool[] {true, true, true, true, false, true, true, true, false, true, true, true, true}, // 5
+            new bool[] {true, true, true, true, false, true, true, true, true, true, true, true, true}, // 6
+            new bool[] {true, true, true, false, true, false, false, true, false, true, false, false, true}, // 7
+            new bool[] {true, true, true, true, true, true, true, true, true, true, true, true, true}, // 8
+            new bool[] {true, true, true, true, true, true, true, true, false, true, true, true, true} // 9
+        };
         readonly Dictionary<string, IMyLightingBlock[]> _13PanelLights = new Dictionary<string, IMyLightingBlock[]>();
-        static readonly string[] SEGMENT_NAMES_13PANEL = new string[]
-        {
-            "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M"
-        };
-        static readonly bool[][] SEGMENT_PATTERNS_13PANEL = new bool[][]
-        {
-            /*0*/ new bool[] {true, true, true, true, true, true, false, true, true, true, true, true, true},
-            /*1*/ new bool[] {false, false, true, false, true, false, false, true, false, true, false, false, true},
-            /*2*/ new bool[] {true, true, true, false, true, true, true, true, true, false, true, true, true},
-            /*3*/ new bool[] {true, true, true, false, true, false, true, true, false, true, true, true, true},
-            /*4*/ new bool[] {true, false, true, true, true, true, true, true, false, true, false, false, true},
-            /*5*/ new bool[] {true, true, true, true, false, true, true, true, false, true, true, true, true},
-            /*6*/ new bool[] {true, true, true, true, false, true, true, true, true, true, true, true, true},
-            /*7*/ new bool[] {true, true, true, false, true, false, false, true, false, true, false, false, true},
-            /*8*/ new bool[] {true, true, true, true, true, true, true, true, true, true, true, true, true},
-            /*9*/ new bool[] {true, true, true, true, true, true, true, true, false, true, true, true, true}
-        };
 
 
         void InitializePanelSegments() {
